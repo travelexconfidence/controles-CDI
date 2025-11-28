@@ -243,33 +243,27 @@
             <div style="font-weight:700;">Resumo Diário</div>
             <div style="font-size:12px;color:var(--muted);">Filtros, importação e ações rápidas</div>
         </div>
+        
         <div id="header-right">
             <button id="printBtn" class="btn small" title="Imprimir">Imprimir</button>
 
             <button id="exportBtn" class="btn small secondary" title="Exportar para Excel">Exportar XLS</button>
-            <button id="exportJsonBtn" class="btn small" title="Exportar Dados JSON">Dados JSON</button>
-
+            
             <label class="file-label" for="excelFile" title="Selecionar arquivos">
                 <input type="file" id="excelFile" accept=".xlsx,.xls,.csv,.txt" multiple>
                 <span class="btn small">Procurar XLSX</span>
             </label>
             <button id="loadExcelBtn" class="btn small secondary" title="Importar arquivos">Importar XLSX</button>
-            
-            <label class="file-label" for="jsonFile" title="Importar Dados JSON">
-                <input type="file" id="jsonFile" accept=".json">
-                <span class="btn small">Procurar JSON</span>
-            </label>
-            <button id="loadJsonBtn" class="btn small secondary" title="Carregar Dados JSON">Importar JSON</button>
-            
+
             <label class="logo-label" for="logoFile" title="Carregar logo">
                 <input type="file" id="logoFile" accept="image/*">
-                <span class="btn small">Procurar</span>
+                <span class="btn small">Procurar Logo</span>
             </label>
             <button id="addLogoBtn" class="btn small secondary" title="Carregar Logo">Carregar Logo</button>
             <button id="removeLogoBtn" class="btn small" title="Remover">Remover</button>
             <button id="deleteAllBtn" class="btn small secondary danger" title="Excluir tudo">🗑️</button>
         </div>
-    </div>
+        </div>
     <div id="main-container">
         <div id="results-panel" class="card">
             <h2 style="margin:0 0 8px 0;">📊 Resumo Diário</h2>
@@ -328,7 +322,7 @@
             <div>
                 <h3 style="margin:0 0 8px 0;">📂 Importação</h3>
                 <p style="font-size:12px;color:var(--muted);margin:0 0 10px 0;">
-                    *O sistema tenta reconhecer os cabeçalhos. Use **Importar JSON** para carregar dados salvos.
+                    *O sistema tenta reconhecer os cabeçalhos.
                 </p>
             </div>
             <hr style="border:none;border-top:1px solid rgba(15,23,36,0.04);margin:12px 0;">
@@ -531,7 +525,6 @@
             } catch (err) { console.warn(err); }
             // Adiciona listeners para filtros e ações
             attachFilterListeners();
-            attachJsonListeners();
             calculateAndRender();
         };
 
@@ -641,65 +634,7 @@
             log(`✅ ${newOperations.length} novas operações importadas com sucesso.`);
         }
 
-        // Funções para Importação/Exportação JSON
-        function exportDataJson() {
-            const dataToExport = {
-                operacoes: operacoes,
-                taxaCdiAnual: document.getElementById('taxaCdiAnual').value,
-                diasAno: document.getElementById('diasAno').value
-            };
-
-            const dataStr = JSON.stringify(dataToExport, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `cdi_ganhos_backup_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            log('📥 Dados exportados para arquivo JSON. Salve este arquivo para importação em outro PC.');
-        }
-
-        function importDataJson(file) {
-            if (!file) {
-                log('❌ Nenhum arquivo JSON selecionado.');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedState = JSON.parse(e.target.result);
-                    if (importedState.operacoes && Array.isArray(importedState.operacoes)) {
-                        operacoes = importedState.operacoes;
-                        document.getElementById('taxaCdiAnual').value = importedState.taxaCdiAnual || '14,90';
-                        document.getElementById('diasAno').value = importedState.diasAno || '252';
-                        saveState();
-                        calculateAndRender();
-                        log(`✅ ${operacoes.length} operações importadas com sucesso do arquivo JSON!`);
-                    } else {
-                        throw new Error('Formato de dados JSON inválido.');
-                    }
-                } catch (error) {
-                    log('❌ Erro ao processar o arquivo JSON. ' + error.message);
-                }
-            };
-            reader.onerror = function() {
-                log('❌ Erro de leitura do arquivo.');
-            };
-            reader.readAsText(file);
-        }
-
-        function attachJsonListeners() {
-            document.getElementById('exportJsonBtn').addEventListener('click', exportDataJson);
-            document.getElementById('loadJsonBtn').addEventListener('click', () => {
-                const fileInput = document.getElementById('jsonFile');
-                const file = fileInput.files[0];
-                importDataJson(file);
-            });
-        }
-
+        // Funções para Importação/Exportação JSON (REMOVIDAS DO CÓDIGO FINAL)
         function editOperation(index){
             const op = operacoes[index];
             if(!op) return;
@@ -758,16 +693,6 @@
                     log('🗑️ Todas as operações foram excluídas.');
                 }
             });
-            
-            // NOVO: LISTENER PARA O BOTÃO DE IMPORTAR XLSX (MÉTODO ANTIGO)
-            document.getElementById('loadExcelBtn').addEventListener('click', () => {
-                const files = document.getElementById('excelFile').files;
-                if (files.length === 0) {
-                    log('⚠️ Por favor, selecione um ou mais arquivos Excel/CSV.');
-                    return;
-                }
-                Array.from(files).forEach(handleExcelFile);
-            });
 
             document.getElementById('exportBtn').addEventListener('click', () => {
                 const htmlTable = document.getElementById('resultTable').innerHTML;
@@ -825,6 +750,12 @@
 
             document.getElementById('cancelEditBtn').addEventListener('click', clearManualForm);
         }
+
+        // Funções de JSON (vazias, pois foram removidas da interface)
+        function attachJsonListeners() { /* VAZIO */ }
+        function exportDataJson() { /* VAZIO */ }
+        function importDataJson(file) { /* VAZIO */ }
+        
         /* Renderização */
         function updateTotalCards(){ document.querySelector('#totalCompromissadaDisplay p').textContent = formatBRL(totalCompromissada); document.querySelector('#totalRetornoDisplay p').textContent = formatBRL(totalRetorno); document.querySelector('#totalCdiDisplay p').textContent = formatBRL(totalGanho); }
         function calculateAndRender(){
@@ -911,6 +842,25 @@
             document.getElementById('resultTable').innerHTML = html;
             updateTotalCards();
         }
+        
+        // ----------------------------------------------------------------------------------
+        // BLOCO GARANTIDO DE CARREGAMENTO NO DOM (PARA FUNCIONAMENTO DO BOTÃO IMPORTAR)
+        // ----------------------------------------------------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadExcelBtn = document.getElementById('loadExcelBtn');
+            if (loadExcelBtn) {
+                loadExcelBtn.addEventListener('click', () => {
+                    const files = document.getElementById('excelFile').files;
+                    if (files.length === 0) {
+                        log('⚠️ Por favor, selecione um ou mais arquivos Excel/CSV.');
+                        return;
+                    }
+                    Array.from(files).forEach(handleExcelFile);
+                });
+                console.log('✅ Listener de importação XLSX anexado com sucesso.');
+            }
+        });
+        // ----------------------------------------------------------------------------------
     </script>
 </body>
 </html>
