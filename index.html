@@ -67,7 +67,7 @@
             gap: 10px;
         }
 
-        /* Top actions compacto */
+        /* Top actions compacto (AJUSTADO PARA O SEU LAYOUT DETALHADO) */
         #top-actions{
             display:flex; align-items:center; gap:10px; padding:10px;
             background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--card-border);
@@ -225,14 +225,14 @@
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparser.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 
     <script>
-        // CONFIGURAÇÃO DO FIREBASE COM SEUS DADOS
+        // CONFIGURAÇÃO DO FIREBASE COM SUAS CHAVES CORRIGIDAS
         const firebaseConfig = {
             apiKey: "AIzaSyD_vxw2VcSPO_tMXgrl7quZ85ODvpqQuR8", 
             authDomain: "controle-cdi.firebaseapp.com",
@@ -275,9 +275,16 @@
             <button id="exportBtn" class="btn small secondary" title="Exportar para Excel">Exportar XLS</button>
             
             <label class="file-label" for="excelFile" title="Selecionar arquivos">
-                <input type="file" id="excelFile" accept=".xlsx,.xls,.csv,.txt" multiple onchange="handleAutoImport(this)">
-                <span class="btn small secondary">Procurar XLSX e Importar</span>
+                <input type="file" id="excelFile" accept=".xlsx,.xls,.csv,.txt" multiple>
+                <span class="btn small secondary">Procurar XLSX/CSV</span>
             </label>
+            <button id="importExcelBtn" class="btn small secondary" title="Importar XLSX/CSV">Importar XLSX</button>
+
+            <label class="file-label" for="jsonFile" title="Selecionar JSON">
+                <input type="file" id="jsonFile" accept=".json">
+                <span class="btn small secondary">Procurar JSON</span>
+            </label>
+            <button id="importJsonBtn" class="btn small secondary" title="Importar JSON">Importar JSON</button>
 
             <label class="logo-label" for="logoFile" title="Carregar logo">
                 <input type="file" id="logoFile" accept="image/*">
@@ -372,37 +379,17 @@
                     </div>
                 </div>
             </div>
-            <pre id="log" style="height:84px;overflow:auto;margin-top:12px;color:var(--muted);">Aguardando...</pre>
+            <pre id="log" style="height:84px;overflow:auto;margin-top:12px;color:var(--muted);">Aguardando... Tentando carregar dados da nuvem (Firebase)...</pre>
         </div>
     </div>
     <script>
         /* ---------- Funções utilitárias e lógica ---------- */
         function log(message) { document.getElementById('log').textContent = message; }
 
-        // Função para manter o tema fixo no Azul Marinho e Vermelho Secundário com Borda Branca
         function resetThemeToFixed() {
-            // Aplica as cores fixas
+            // Aplica as cores fixas e garante que os estilos dos botões estão corretos
             document.documentElement.style.setProperty('--primary', '#0A0A33');
-            document.documentElement.style.setProperty('--primary-light', '#1A1A55');
             document.documentElement.style.setProperty('--secondary', '#C00000');
-            document.documentElement.style.setProperty('--secondary-light', '#E00000');
-
-            // Reaplica o estilo SÓLIDO com borda branca para botões
-            document.querySelectorAll('.btn:not(.secondary):not(.danger)').forEach(b => {
-                b.style.background = 'var(--primary)';
-                b.style.border = '1px solid white';
-                b.style.color = 'white';
-            });
-            document.querySelectorAll('.btn.secondary').forEach(b => {
-                b.style.background = 'var(--secondary)';
-                b.style.border = '1px solid white';
-                b.style.color = 'white';
-            });
-            document.querySelectorAll('.btn.danger').forEach(b=>{
-                b.style.background = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim();
-                b.style.color = '#ffffff';
-                b.style.border = '1px solid white';
-            });
         }
 
         const logoInput = document.getElementById('logoFile');
@@ -467,7 +454,7 @@
                 log('🗑️ Logo removido. Tema restaurado.');
             });
         }
-        // --- Funções de processamento de dados (mantidas como estão) ---
+        // --- Funções de processamento de dados ---
         function cleanCurrency(v){
              if(typeof v!=='string') v=String(v);
              let cleanString = v.replace(/[R$\s]/g, '');
@@ -523,7 +510,7 @@
              return '';
          }
 
-        /* Persistência e estado - AGORA SALVANDO NO FIREBASE */
+        /* Persistência e estado - FIREBASE */
         let operacoes = [], totalCompromissada=0, totalRetorno=0, totalGanho=0;
 
         // Função para SALVAR no Firebase
@@ -550,9 +537,10 @@
             }
         }
 
-        /* Carrega estado e logo salvos - AGORA CARREGANDO DO FIREBASE */
+        /* Carrega estado e logo salvos - FIREBASE */
         window.loadState = ()=>{
             resetThemeToFixed();
+            const siteLogo = document.getElementById('siteLogo');
             log('Aguardando... Tentando carregar dados da nuvem (Firebase)...');
 
             // 1. Tenta carregar do Firebase
@@ -582,15 +570,16 @@
                         }
                     } catch (err) { console.warn(err); }
 
+                    // Anexa todos os listeners de evento
+                    attachEventListeners(); 
                     // Garante que o estado seja carregado e a renderização finalizada
-                    attachFilterListeners();
                     calculateAndRender();
                 });
         };
+        
         /* Renderização */
         function updateTotalCards(){ document.querySelector('#totalCompromissadaDisplay p').textContent = formatBRL(totalCompromissada); document.querySelector('#totalRetornoDisplay p').textContent = formatBRL(totalRetorno); document.querySelector('#totalCdiDisplay p').textContent = formatBRL(totalGanho); }
         function calculateAndRender(){
-            // ... (restante da sua função calculateAndRender)
             totalCompromissada=0; totalRetorno=0; totalGanho=0;
             const cdiGlobal = cleanCdiTaxa(document.getElementById('taxaCdiAnual').value);
             const diasAno = parseNumber(document.getElementById('diasAno').value) || 252;
@@ -666,26 +655,7 @@
             updateTotalCards();
         }
 
-        // --- FUNÇÕES FALTANTES/COMPLEMENTARES QUE DEVEM CHAMAR saveState() ---
-
-        // 1. Lógica de Importação (Chamada por onchange)
-        function handleAutoImport(input) {
-            const files = input.files;
-            if (files.length === 0) {
-                log('⚠️ Por favor, selecione um ou mais arquivos Excel/CSV.');
-                return;
-            }
-            log(`✅ Arquivo(s) selecionado(s). Iniciando importação...`);
-            // Limpa o array para não duplicar se importar mais de uma vez
-            operacoes = [];
-            
-            Array.from(files).forEach(handleExcelFile);
-            
-            // Opcional: Limpa o input para permitir a importação do mesmo arquivo novamente
-            input.value = null; 
-            
-            // NOTE: A importação assíncrona será finalizada dentro de handleExcelFile, que deve chamar saveState() no final.
-        }
+        // --- LÓGICA DE IMPORTAÇÃO ---
 
         function handleExcelFile(file) {
             log(`Processando arquivo: ${file.name}`);
@@ -697,7 +667,6 @@
                     const sheetName = workbook.SheetNames[0];
                     const sheet = workbook.Sheets[sheetName];
                     
-                    // Converte para JSON. header:1 garante que a primeira linha será usada como cabeçalho.
                     const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     
                     if(json.length < 2) {
@@ -708,7 +677,6 @@
                     const header = json[0].map(h => String(h).trim().toUpperCase().replace(/[^A-Z0-9]/G, '_'));
                     const rows = json.slice(1);
 
-                    // Mapeamento de Colunas (Adapte isso se o seu arquivo tiver nomes diferentes)
                     const mapping = {
                         'DATA': ['DATA', 'DT'],
                         'DESCRICAO': ['DESCRICAO', 'RESUMO', 'OPERACAO'],
@@ -717,7 +685,7 @@
                         'CONTACESSIONARIO': ['CONTA_CESSIONARIO', 'CESSIONARIO'],
                         'COMPROMISSADA': ['COMPROMISSADA', 'VL_COMPROMISSADA', 'VALOR_COMPR'],
                         'RETORNO': ['RETORNO', 'VL_RETORNO', 'VALOR_RET'],
-                        'CDITAXA': ['TX_252', 'CDI_ANUAL'], // Preferencial para taxa
+                        'CDITAXA': ['TX_252', 'CDI_ANUAL'], 
                         'PUIDA': ['PU_IDA', 'PU_COMPRA'],
                         'PUVOLTA': ['PU_VOLTA', 'PU_VENDA']
                     };
@@ -729,10 +697,9 @@
                             op[key.toLowerCase()] = foundIndex !== undefined && foundIndex !== -1 ? row[foundIndex] : '';
                         });
                         
-                        // Normaliza a data
                         op.data = normalizeDate(op.data);
                         return op;
-                    }).filter(op => op.data); // Filtra linhas sem data válida
+                    }).filter(op => op.data);
 
                     operacoes.push(...newOps);
                     log(`✅ ${newOps.length} operações importadas do arquivo ${file.name}. Total: ${operacoes.length} operações.`);
@@ -747,8 +714,22 @@
             };
             reader.readAsArrayBuffer(file);
         }
+        
+        // FUNÇÃO ATIVADA AO CLICAR NO BOTÃO "Importar XLSX"
+        function triggerExcelImport() {
+            const fileInput = document.getElementById('excelFile');
+            const files = fileInput.files;
 
-        // 2. Lógica de Adicionar/Editar Manual
+            if (files.length === 0) {
+                log('⚠️ Por favor, selecione um ou mais arquivos Excel/CSV ANTES de clicar em "Importar XLSX".');
+                return;
+            }
+
+            // Processa todos os arquivos selecionados
+            Array.from(files).forEach(handleExcelFile);
+        }
+
+        // --- Lógica de Adicionar/Editar Manual ---
         function addOrUpdateOperation(){
             const index = parseInt(document.getElementById('editIndex').value);
             const opData = {
@@ -760,8 +741,8 @@
                 cdiTaxa: document.getElementById('manualCdiTaxa').value,
                 compromissada: document.getElementById('manualCompromissada').value,
                 retorno: document.getElementById('manualRetorno').value,
-                puIda: '', // Manter vazio no manual
-                puVolta: '' // Manter vazio no manual
+                puIda: '', 
+                puVolta: '' 
             };
 
             if (!opData.data || !opData.compromissada || !opData.retorno) {
@@ -778,23 +759,13 @@
             }
 
             // Limpa o formulário e reseta o modo de edição
-            document.getElementById('editIndex').value = '-1';
-            document.getElementById('manualData').value = '';
-            document.getElementById('manualDesc').value = '';
-            document.getElementById('manualBanco').value = '';
-            document.getElementById('manualCedente').value = '';
-            document.getElementById('manualCessionario').value = '';
-            document.getElementById('manualCdiTaxa').value = '';
-            document.getElementById('manualCompromissada').value = '';
-            document.getElementById('manualRetorno').value = '';
-            document.getElementById('addBtn').textContent = 'Adicionar Lançamento';
-            document.getElementById('cancelEditBtn').style.display = 'none';
+            cancelEdit(); 
 
             calculateAndRender();
             saveState(); // SALVA NA NUVEM APÓS ADIÇÃO/EDIÇÃO
         }
 
-        // 3. Lógica de Exclusão
+        // --- Lógica de Exclusão ---
         function deleteOperation(index){
             if(!confirm(`Tem certeza que deseja excluir a operação #${index + 1}?`)) return;
             operacoes.splice(index, 1);
@@ -811,7 +782,7 @@
             saveState(); // SALVA NA NUVEM APÓS EXCLUSÃO TOTAL
         }
         
-        // 4. Lógica de Edição (para carregar o formulário)
+        // --- Lógica de Edição ---
         function editOperation(index){
             const op = operacoes[index];
             document.getElementById('editIndex').value = index;
@@ -821,7 +792,7 @@
             document.getElementById('manualCedente').value = op.contaCedente || '';
             document.getElementById('manualCessionario').value = op.contaCessionario || '';
             document.getElementById('manualCdiTaxa').value = op.cdiTaxa || '';
-            // Converte para string com ponto (para o input type=text) se precisar
+            // Converte para string com vírgula para o input
             document.getElementById('manualCompromissada').value = parseNumber(op.compromissada).toFixed(2).replace('.',',');
             document.getElementById('manualRetorno').value = parseNumber(op.retorno).toFixed(2).replace('.',',');
 
@@ -854,7 +825,6 @@
                 return;
             }
             const dataToExport = operacoes.map(op => {
-                // Prepara os dados para a planilha, usando a taxa CDI global se a específica estiver vazia
                 const cdiGlobal = cleanCdiTaxa(document.getElementById('taxaCdiAnual').value);
                 const taxaUsada = (cleanCdiTaxa(op.cdiTaxa) > 0 && cleanCdiTaxa(op.cdiTaxa) !== 100) ? op.cdiTaxa : formatPercent(cdiGlobal);
                 
@@ -886,7 +856,6 @@
 
         // Lógica de Filtros
         function filterData(){
-            // O filtro é feito dentro do calculateAndRender, basta chamá-lo
             calculateAndRender();
         }
         function resetFilter(){
@@ -895,19 +864,45 @@
             calculateAndRender();
         }
 
-        function attachFilterListeners(){
-            // Anexar listeners de evento (apenas na primeira vez)
-            document.getElementById('addBtn').addEventListener('click', addOrUpdateOperation);
-            document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
-            document.getElementById('deleteAllBtn').addEventListener('click', deleteAllData);
-            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
-            document.getElementById('printBtn').addEventListener('click', printReport);
-            document.getElementById('filterBtn').addEventListener('click', filterData);
-            document.getElementById('resetFilterBtn').addEventListener('click', resetFilter);
+        // ANEXA EVENT LISTENERS (CORRIGIDO PARA SEU LAYOUT DETALHADO)
+        function attachEventListeners() {
+            // Botão de Adicionar/Salvar Lançamento Manual
+            const addBtn = document.getElementById('addBtn');
+            if (addBtn) addBtn.addEventListener('click', addOrUpdateOperation);
+            
+            // Botão de Cancelar Edição
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            if (cancelEditBtn) cancelEditBtn.addEventListener('click', cancelEdit);
+            
+            // Botão de Excluir TUDO
+            const deleteAllBtn = document.getElementById('deleteAllBtn');
+            if (deleteAllBtn) deleteAllBtn.addEventListener('click', deleteAllData);
 
+            // Botão de Exportar
+            const exportBtn = document.getElementById('exportBtn');
+            if (exportBtn) exportBtn.addEventListener('click', exportToExcel);
+
+            // Botão de Imprimir
+            const printBtn = document.getElementById('printBtn');
+            if (printBtn) printBtn.addEventListener('click', printReport);
+            
+            // Botão de Filtro
+            const filterBtn = document.getElementById('filterBtn');
+            if (filterBtn) filterBtn.addEventListener('click', filterData);
+            const resetFilterBtn = document.getElementById('resetFilterBtn');
+            if (resetFilterBtn) resetFilterBtn.addEventListener('click', resetFilter);
+            
+            // *** CONEXÃO CORRETA COM O BOTÃO IMPORTAR XLSX ***
+            const importExcelBtn = document.getElementById('importExcelBtn');
+            if (importExcelBtn) {
+                importExcelBtn.addEventListener('click', triggerExcelImport);
+            }
+            
             // Observa mudanças nas taxas para salvar o estado global
-            document.getElementById('taxaCdiAnual').addEventListener('change', saveState);
-            document.getElementById('diasAno').addEventListener('change', saveState);
+            const taxaCdiAnualInput = document.getElementById('taxaCdiAnual');
+            if (taxaCdiAnualInput) taxaCdiAnualInput.addEventListener('change', saveState);
+            const diasAnoInput = document.getElementById('diasAno');
+            if (diasAnoInput) diasAnoInput.addEventListener('change', saveState);
         }
 
     </script>
