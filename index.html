@@ -232,22 +232,23 @@
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 
     <script>
-        // ⚠️ ATENÇÃO: SUBSTITUA ESTES VALORES PELOS SEUS DADOS DE CONFIGURAÇÃO DO FIREBASE
+        // CONFIGURAÇÃO DO FIREBASE COM SEUS DADOS
         const firebaseConfig = {
-            apiKey: "SEU_API_KEY", // <-- TROCAR
-            authDomain: "SEU_AUTH_DOMAIN", // <-- TROCAR
-            databaseURL: "SUA_DATABASE_URL", // <-- TROCAR (Ex: https://seu-projeto-default-rtdb.firebaseio.com)
-            projectId: "SEU_PROJECT_ID", // <-- TROCAR
-            storageBucket: "SEU_STORAGE_BUCKET", // <-- TROCAR
-            messagingSenderId: "SEU_MESSAGING_SENDER_ID", // <-- TROCAR
-            appId: "SEU_APP_ID" // <-- TROCAR
+            apiKey: "AIzaSyD_vxw2VcSPO_tMXgrl7quZ85ODvpqQuR8", 
+            authDomain: "controle-cdi.firebaseapp.com",
+            // IMPORTANTE: URL para o Realtime Database, seguindo o padrão do seu Project ID
+            databaseURL: "https://controle-cdi-default-rtdb.firebaseio.com", 
+            projectId: "controle-cdi", 
+            storageBucket: "controle-cdi.firebasestorage.app", 
+            messagingSenderId: "215359645646",
+            appId: "1:215359645646:web:411c4eff3adfc83222ad9f"
         };
 
         // Inicializa o Firebase e o banco de dados
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Define o caminho no banco de dados.
+        // Define o caminho no banco de dados. Este é o ID único para TODOS os dados do seu controle.
         const DB_PATH = 'cdi_control_global_state'; 
     </script>
 
