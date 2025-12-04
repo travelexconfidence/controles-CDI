@@ -135,6 +135,7 @@
                 <div style="font-weight:700;">Resumo Diário</div>
                 <div style="font-size:12px;color:var(--muted);">Filtros, importação e ações rápidas</div>
             </div>
+            
             <div id="header-right">
                 <button id="printBtn" class="btn small" title="Imprimir" onclick="window.print()">Imprimir</button>
                 <button id="exportBtn" class="btn small secondary" title="Exportar" onclick="exportExcel()">Exportar</button>
@@ -146,15 +147,13 @@
                     Importar Dados (Excel/CSV)
                 </button>
                 
-                <label class="logo-label" for="logoFile" title="Carregar logo">
-                    <input type="file" id="logoFile" accept="image/*">
-                    <span class="btn small">Procurar Logo</span>
-                </label>
+                <input type="file" id="logoFile" accept="image/*" style="display: none;">
+
                 <button id="addLogoBtn" class="btn small secondary" title="Carregar Logo" onclick="document.getElementById('logoFile').click()">Carregar Logo</button>
                 <button id="removeLogoBtn" class="btn small" title="Remover" onclick="removeLogo()">Remover</button>
                 <button id="deleteAllBtn" class="btn small secondary danger" title="Excluir tudo" onclick="deleteAllData()">🗑️</button>
             </div>
-        </div>
+            </div>
         
         <div id="main-container">
             <div id="results-panel" class="card">
