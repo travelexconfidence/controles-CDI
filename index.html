@@ -268,15 +268,16 @@
     </div>
     
     <script>
-        /* =============================================   Configurações Firebase   ============================================= */
+        /* =============================================   Configurações Firebase (V8)   ============================================= */
+        // ATENÇÃO: ESTA CONFIGURAÇÃO FOI ATUALIZADA PARA O PROJETO "cdicontroles"
         const firebaseConfig = {
-            apiKey: "AIzaSyD_vxw2VcSPO_tMXgrl7quZ85ODvpqQuR8",
-            authDomain: "controle-cdi.firebaseapp.com",
-            projectId: "controle-cdi",
-            storageBucket: "controle-cdi.firebasestorage.app",
-            messagingSenderId: "215359645646",
-            appId: "1:215359645646:web:d18dae706d90823622ad9f",
-            measurementId: "G-GD0S6YH5LJ"
+            apiKey: "AIzaSyACuB19m7nZYjjFb2VcD-yczFFrxFhz4zY",
+            authDomain: "cdicontroles.firebaseapp.com",
+            projectId: "cdicontroles",
+            storageBucket: "cdicontroles.firebasestorage.app",
+            messagingSenderId: "229144316114",
+            appId: "1:229144316114:web:249b93926d729b77e1850b",
+            measurementId: "G-02Y0S778RX"
         };
 
         const app = firebase.initializeApp(firebaseConfig);
@@ -305,7 +306,7 @@
                 await auth.signInWithEmailAndPassword(email, password);
             } catch (error) {
                 document.getElementById('loadingOverlay').style.display = 'none';
-                alert(`Erro de Login: Verifique suas credenciais. (${error.message})`);
+                alert(`Erro de Login: Verifique suas credenciais no Firebase Authentication. (${error.message})`);
             }
         }
 
@@ -350,7 +351,8 @@
             }, err => {
                 console.error('Erro Firestore', err);
                 document.getElementById('loadingOverlay').style.display = 'none'; 
-                alert('Erro ao carregar dados do Firebase. Verifique suas Regras de Segurança.');
+                // Erro [code=not-found] ocorre aqui se o Firestore não estiver ativo.
+                alert('Erro ao carregar dados do Firebase. Verifique se o Firestore está ativo no projeto "cdicontroles".');
             });
         }
         
