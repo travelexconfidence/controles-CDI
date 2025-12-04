@@ -139,10 +139,12 @@
                 <button id="printBtn" class="btn small" title="Imprimir" onclick="window.print()">Imprimir</button>
                 <button id="exportBtn" class="btn small secondary" title="Exportar" onclick="exportExcel()">Exportar</button>
                 
-                <label class="file-label" for="excelFile" title="Importar arquivos">
-                    <input type="file" id="excelFile" accept=".xlsx,.xls,.csv,.txt" multiple onchange="importFiles(event)">
-                    <span id="importLabel" class="btn small secondary">Importar Dados (Excel/CSV)</span>
-                </label>
+                <input type="file" id="excelFile" accept=".xlsx,.xls,.csv,.txt" multiple onchange="importFiles(event)" style="display: none;"> 
+
+                <button id="importBtn" class="btn small secondary" title="Importar arquivos" 
+                    onclick="document.getElementById('excelFile').click()">
+                    Importar Dados (Excel/CSV)
+                </button>
                 
                 <label class="logo-label" for="logoFile" title="Carregar logo">
                     <input type="file" id="logoFile" accept="image/*">
@@ -604,7 +606,7 @@
             calculateAndRender();
         }
 
-        // ------------------------- Importação (Corrigida para Ser Mais Direta) -------------------------
+        // ------------------------- Importação (Final, Corrigida e Robusta) -------------------------
 
         function importFiles(event) {
             const files = event.target.files;
@@ -614,7 +616,7 @@
             }
             
             document.getElementById('loadingOverlay').style.display = 'flex';
-            // Por simplicidade e robustez, processaremos APENAS o primeiro arquivo
+            // Processamos APENAS o primeiro arquivo selecionado para simplificar o fluxo
             const file = files[0]; 
             const fileName = file.name.toUpperCase();
             
@@ -629,7 +631,7 @@
                     saveState(); 
                     log(`✅ Importação de ${file.name} concluída. ${novosDados.length} novas operações adicionadas.`);
                 } else {
-                    log(`❌ Nenhuma operação válida encontrada no arquivo ${file.name}.`);
+                    log(`❌ Nenhuma operação válida encontrada no arquivo ${file.name}. Verifique o cabeçalho.`);
                 }
                 event.target.value = null; // Limpa o input file para permitir nova importação
             };
@@ -650,7 +652,7 @@
             reader.onload = function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
-                    // Adicionado raw: false no XLSX.read também para melhor parsing
+                    // Adicionado raw: false no XLSX.read e cellDates: true para melhor parsing de datas
                     const workbook = XLSX.read(data, { type: 'array', cellDates: true, raw: false });
                     const sheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[sheetName];
