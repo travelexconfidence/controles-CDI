@@ -142,9 +142,14 @@
                 
                 <input type="file" id="excelFile" accept=".xlsx,.xls,.csv,.txt" multiple onchange="importFiles(event)" style="display: none;"> 
 
-                <button id="importBtn" class="btn small secondary" title="Importar arquivos" 
+                <button id="searchFileBtn" class="btn small secondary" title="Buscar arquivo Excel/CSV" 
                     onclick="document.getElementById('excelFile').click()">
-                    Importar Dados (Excel/CSV)
+                    Buscar Arquivo
+                </button>
+                
+                <button id="importBtn" class="btn small secondary" title="Importar dados selecionados" 
+                    onclick="document.getElementById('excelFile').click()">
+                    Importar
                 </button>
                 
                 <input type="file" id="logoFile" accept="image/*" style="display: none;">
