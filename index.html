@@ -2,11 +2,13 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
-    <title>Controle de Ganhos CDI — Layout Empilhado</title>
+    <title>Controle de Ganhos CDI — Layout Empilhado (Firebase)</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     
@@ -47,7 +49,7 @@
         #top-actions{ display:flex; align-items:center; gap:10px; padding:10px; background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--card-border); flex-wrap:wrap; }
         #header-left{ display:flex; align-items:center; gap:10px; }
         #header-right{ margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        /* --------------- BOTÕES SÓLIDOS COM CONTORNO BRANCO (ESTILO TRAVELEX) --------------- */
+        /* --------------- BOTÕES SÓLIDOS COM CONTORNO BRANCO --------------- */
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; background: var(--primary); color: white; border: 1px solid white; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); }
         .btn.secondary { background: var(--secondary); color: white; border: 1px solid white; }
         .btn.small { padding: 6px 10px; font-size: 13px; border-radius: 7px; }
@@ -331,6 +333,12 @@
         /* -------------------------   Persistência Firestore (Substitui localStorage)   ------------------------- */
 
         function saveState(){ 
+            // Somente usuários logados podem salvar (controlado pelo auth)
+            if (!auth.currentUser) {
+                log('ERRO: Você precisa estar logado para salvar dados na Nuvem.');
+                return;
+            }
+
             const stateToSave = {
                 operacoes: operacoes,
                 taxaCdiAnual: document.getElementById('taxaCdiAnual').value,
@@ -351,6 +359,7 @@
         window.loadState = ()=>{
             resetThemeToFixed(); 
             try {
+                // Manter o logo salvo localmente
                 const savedLogo = localStorage.getItem('cdiLogo');
                 if (savedLogo) {
                     siteLogo.src = savedLogo;
@@ -440,7 +449,7 @@
             log('🗑️ Logo removido. Tema restaurado.');
         }
 
-        // --- Funções de processamento de dados (mantidas como estão) ---
+        // --- Funções de processamento de dados ---
         function cleanCurrency(v){ 
             if(typeof v!=='string') v=String(v); 
             let cleanString = v.replace(/[R$\s]/g, '');
@@ -595,7 +604,7 @@
             calculateAndRender();
         }
 
-        // ------------------------- Importação (Ajustada para Salvar na Nuvem) -------------------------
+        // ------------------------- Importação (Corrigida para Salvar na Nuvem) -------------------------
 
         function importFiles(event) {
             const files = event.target.files;
@@ -615,7 +624,7 @@
                         operacoes = operacoes.concat(dadosCombinados);
                         // AQUI SALVAMOS NA NUVEM!
                         saveState(); 
-                        log(`✅ Importação concluída. ${dadosCombinados.length} novas operações adicionadas.`);
+                        log(`✅ Importação concluída. ${dadosCombinados.length} novas operações adicionadas. Salvando na Nuvem...`);
                     } else {
                         log('Nenhuma operação válida encontrada nos arquivos importados.');
                     }
@@ -623,7 +632,8 @@
                 }
             };
             
-            const processFile = (file) => {
+            // Processa cada arquivo selecionado
+            Array.from(files).forEach(file => {
                 const fileName = file.name.toUpperCase();
                 if (fileName.endsWith('.XLSX') || fileName.endsWith('.XLS')) {
                     readExcelFile(file, novosDados => {
@@ -638,12 +648,11 @@
                         processamentoConcluido();
                     });
                 } else {
+                    log(`Arquivo ${file.name} ignorado. Formato não suportado.`);
                     arquivosProcessados++;
                     processamentoConcluido();
                 }
-            };
-
-            Array.from(files).forEach(processFile);
+            });
         }
 
         function readExcelFile(file, callback) {
@@ -659,7 +668,7 @@
                     callback(operations);
                 } catch (error) {
                     console.error('Erro ao ler Excel:', error);
-                    alert(`Erro ao processar o arquivo ${file.name}.`);
+                    log(`❌ Erro ao processar o arquivo ${file.name}.`);
                     callback([]);
                 }
             };
@@ -677,7 +686,7 @@
                 },
                 error: function(error) {
                     console.error('Erro ao ler CSV:', error);
-                    alert(`Erro ao processar o arquivo ${file.name}.`);
+                    log(`❌ Erro ao processar o arquivo ${file.name}.`);
                     callback([]);
                 }
             });
@@ -689,18 +698,18 @@
             const headerRow = data[0].map(h => String(h || '').toUpperCase().replace(/[^A-Z0-9\.]/g, ' ').trim().replace(/\s+/g, '_'));
             const map = {};
             
-            // Mapeamento de colunas (ajustado para ser mais flexível)
+            // Mapeamento de colunas (priorizando a identificação mais robusta)
             headerRow.forEach((h, i) => {
                 if (h.includes('DATA')) map.data = i;
                 else if (h.includes('DESCRICAO') || h.includes('RESUMO') || h.includes('OBSERVACAO')) map.desc = i;
                 else if (h.includes('BANCO') || h.includes('CONTRAPARTE')) map.banco = i;
                 else if (h.includes('CEDENTE')) map.cedente = i;
                 else if (h.includes('CESSIONARIO')) map.cessionario = i;
-                else if (h.includes('TAXA') && h.includes('252') && h.includes('CDI')) map.cdiTaxa = i;
-                else if (h.includes('COMPROMISSADA')) map.compromissada = i;
-                else if (h.includes('RETORNO')) map.retorno = i;
-                else if (h.includes('PU') && h.includes('IDA')) map.puIda = i;
-                else if (h.includes('PU') && h.includes('VOLTA')) map.puVolta = i;
+                else if (h.includes('TX_252')) map.cdiTaxa = i; // Preferência por 'TX. 252'
+                else if (h.includes('COMPROMISSADA') || h.includes('VL_COMPROMISSADA')) map.compromissada = i;
+                else if (h.includes('RETORNO') || h.includes('VL_RETORNO')) map.retorno = i;
+                else if (h.includes('PU_IDA')) map.puIda = i;
+                else if (h.includes('PU_VOLTA')) map.puVolta = i;
             });
 
             const operations = [];
@@ -727,7 +736,7 @@
             return operations;
         }
 
-        // ------------------------- Lançamento Manual (Ajustado para Salvar na Nuvem) -------------------------
+        // ------------------------- Lançamento Manual -------------------------
 
         function addOperation() {
             const index = parseInt(document.getElementById('editIndex').value);
@@ -819,7 +828,7 @@
             }
         }
 
-        // ------------------------- Ações Globais (Ajustado para Salvar na Nuvem) -------------------------
+        // ------------------------- Ações Globais -------------------------
 
         async function deleteAllData() {
             if (!confirm('ATENÇÃO: Deseja apagar TODOS os dados de operações na Nuvem? Esta ação é IRREVERSÍVEL.')) return;
@@ -830,7 +839,7 @@
             operacoes = [];
             
             try {
-                // Tenta apagar o documento inteiro (mais rápido que setar vazio)
+                // Tenta apagar o documento inteiro
                 await globalDocRef.delete();
                 log('🗑️ Todos os dados de operações foram apagados da Nuvem.');
                 // O listener vai pegar a mudança, mas forçamos o estado inicial
