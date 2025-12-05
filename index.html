@@ -2,6 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com https://cdn.sheetjs.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://auth.firebase.com;"/>
+    
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
@@ -120,7 +122,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 </head>
-<body onload="loadState()">
+<body>
     
     <script>
         // =========================================================================================
@@ -176,37 +178,31 @@
         
         function log(message) { document.getElementById('log').textContent = message; }
                 
-        // Função para manter o tema fixo no Azul Marinho e Vermelho Secundário com Borda Branca
         function resetThemeToFixed() {
-            // Aplica as cores Azul Marinho e Vermelho definidas no CSS :root
             document.documentElement.style.setProperty('--primary', '#0A0A33');
             document.documentElement.style.setProperty('--primary-light', '#1A1A55');
             document.documentElement.style.setProperty('--secondary', '#C00000');
             document.documentElement.style.setProperty('--secondary-light', '#E00000');
                         
-            // Reaplica o estilo SÓLIDO com borda branca para botões primários
             document.querySelectorAll('.btn:not(.secondary):not(.danger)').forEach(b => {
                 b.style.background = 'var(--primary)';
                 b.style.border = '1px solid white';
                 b.style.color = 'white';
             });
                         
-            // Reaplica o estilo SÓLIDO com borda branca para botões secundários
             document.querySelectorAll('.btn.secondary').forEach(b => {
                 b.style.background = 'var(--secondary)';
                 b.style.border = '1px solid white';
                 b.style.color = 'white';
             });
                         
-            // Garante que o danger button está com a cor e borda corretas (Vermelho)
             document.querySelectorAll('.btn.danger').forEach(b=>{
-                b.style.background = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim(); // Usa secondary para o vermelho
+                b.style.background = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim();
                 b.style.color = '#ffffff';
                 b.style.border = '1px solid white';
             });
         }
         
-        /* Compressão e extração de cor média (Mantida apenas para carregar o logo) */
         async function compressImageFile(file, quality = 0.7, maxSize = 600) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -232,7 +228,6 @@
             });
         }
         
-        // **CORREÇÃO 1: Trata o logo de forma segura após o DOM carregar**
         document.addEventListener('DOMContentLoaded', () => {
             const logoInput = document.getElementById('logoFile');
             const siteLogo = document.getElementById('siteLogo');
@@ -240,7 +235,6 @@
             const addLogoBtn = document.getElementById('addLogoBtn');
 
             if (logoInput && siteLogo) {
-                // Lógica para salvar a imagem quando o arquivo é selecionado
                 logoInput.addEventListener('change', async (e) => {
                     const file = e.target.files && e.target.files[0];
                     if(!file) return;
@@ -258,7 +252,6 @@
                     resetThemeToFixed();
                 });
                 
-                // O botão 'Carregar Logo' apenas aciona o clique no input file 
                 if (addLogoBtn) { 
                     addLogoBtn.addEventListener('click', () => { 
                         logoInput.click(); 
@@ -276,34 +269,30 @@
                     log('🗑️ Logo removido. Tema restaurado.');
                 });
             }
-
-            // Adiciona listeners para exportação e impressão
-            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
-            document.getElementById('printBtn').addEventListener('click', () => window.print());
-            document.getElementById('addBtn').addEventListener('click', addManualOperation);
-            document.getElementById('cancelEditBtn').addEventListener('click', clearManualForm);
+            
+            // CHAMADA SEGURA DO SETUP DOS EVENTOS
+            setupEventListeners();
+            
+            // INICIA O ESTADO APÓS O DOM ESTAR PRONTO (Substitui body onload)
+            loadState(); 
         });
 
         
-        // --- Funções de processamento de dados (mantidas como estão) ---
-        // **CORREÇÃO 2: cleanCurrency mais robusto para importação de arquivos**
         function cleanCurrency(v){
             if(typeof v!=='string') v=String(v);
             let cleanString = v.replace(/[R$\s]/g, '').trim();
 
             if (cleanString.includes('.') && cleanString.includes(',')) {
-                // Formato misto (ex: 1.000,00 ou 1,000.00). O último separador é o decimal.
                 const lastComma = cleanString.lastIndexOf(',');
                 const lastDot = cleanString.lastIndexOf('.');
 
-                if (lastComma > lastDot) { // Formato BR (vírgula é decimal): 1.000,00
-                    cleanString = cleanString.replace(/\./g, ''); // Remove separador de milhares (ponto)
-                    cleanString = cleanString.replace(/,/g, '.'); // Troca separador decimal (vírgula)
-                } else { // Formato US (ponto é decimal): 1,000.00
-                    cleanString = cleanString.replace(/,/g, ''); // Remove separador de milhares (vírgula)
+                if (lastComma > lastDot) { 
+                    cleanString = cleanString.replace(/\./g, '');
+                    cleanString = cleanString.replace(/,/g, '.');
+                } else { 
+                    cleanString = cleanString.replace(/,/g, '');
                 }
             } else {
-                // Se só tem um separador, assume BR (vírgula decimal) por padrão, o que é mais seguro para o Brasil.
                 cleanString = cleanString.replace(/\./g, '');
                 cleanString = cleanString.replace(/,/g, '.');
             }
@@ -351,7 +340,7 @@
                 operacoes: operacoes,
                 taxaCdiAnual: document.getElementById('taxaCdiAnual').value,
                 diasAno: document.getElementById('diasAno').value,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Para rastrear a última edição
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             globalDocRef.set(stateToSave)
@@ -368,16 +357,14 @@
         // =========================================================================================
         // FUNÇÃO loadState() - CARREGA VIA FIREBASE AUTH
         // =========================================================================================
-        window.loadState = ()=>{
+        function loadState(){
             resetThemeToFixed();
 
-            // Adiciona o listener de autenticação do Firebase
             firebase.auth().onAuthStateChanged(user => {
                 const loginBtn = document.getElementById('loginBtn');
                 const logoutBtn = document.getElementById('logoutBtn');
                 
                 if (user) {
-                    // Usuário logado
                     document.getElementById('currentUserDisplay').textContent = user.email;
                     if(loginBtn) loginBtn.style.display = 'none';
                     if(logoutBtn) logoutBtn.style.display = 'inline-flex';
@@ -393,11 +380,9 @@
                             log(`💾 ${operacoes.length} operações carregadas da nuvem.`);
                         } else {
                             log('Aguardando... Não há dados salvos na nuvem. Crie ou importe.');
-                            // Salva o estado inicial (para criar o documento)
                             saveState(); 
                         }
                         
-                        attachFilterListeners();
                         calculateAndRender();
                     }).catch(e => {
                         console.error("Erro ao carregar do Firestore:", e);
@@ -405,16 +390,13 @@
                     });
 
                 } else {
-                    // Usuário deslogado
                     globalDocRef = null;
                     operacoes = [];
-                    // Verifica se os elementos existem antes de tentar manipulá-los
                     if (document.getElementById('currentUserDisplay')) document.getElementById('currentUserDisplay').textContent = 'Desconectado';
                     if (loginBtn) loginBtn.style.display = 'inline-flex';
                     if (logoutBtn) logoutBtn.style.display = 'none';
                     log('Por favor, faça o login para acessar os dados na nuvem.');
                     
-                    // Fallback para localStorage (opcional, mas mantido)
                     try{
                         const s = localStorage.getItem('cdiControlState');
                         if(s){
@@ -424,7 +406,6 @@
                             document.getElementById('diasAno').value = st.diasAno || '252';
                             log(`⚠️ Carregando dados locais (${operacoes.length} operações). Faça login para salvar na nuvem.`);
                         } else {
-                           // Garante que o estado inicial é carregado se não houver dados
                            document.getElementById('taxaCdiAnual').value = '14,90';
                            document.getElementById('diasAno').value = '252';
                            log('Aguardando... Não há dados salvos localmente.');
@@ -434,12 +415,10 @@
                         log('❌ Erro ao carregar dados locais.'); 
                     }
                     
-                    attachFilterListeners();
-                    calculateAndRender(); // Renderiza com dados locais (se houver)
+                    calculateAndRender();
                 }
             });
 
-            // **CORREÇÃO 1: Trata o logo de forma segura dentro da loadState**
             try {
                 const siteLogo = document.getElementById('siteLogo');
                 const savedLogo = localStorage.getItem('cdiLogo');
@@ -458,7 +437,6 @@
             const diasAno = parseNumber(document.getElementById('diasAno').value) || 252;
             const showIndividual = document.getElementById('showIndividualOps').checked;
             
-            // LER E NORMALIZAR OS FILTROS
             const filterStartDateStr = document.getElementById('filterStartDate').value;
             const filterEndDateStr = document.getElementById('filterEndDate').value;
             const filterStart = filterStartDateStr ? normalizeDate(filterStartDateStr) : '';
@@ -473,12 +451,11 @@
             });
             ops.sort((a,b)=> normalizeDate(a.data).localeCompare(normalizeDate(b.data)));
             
-            // normaliza exibição dos inputs
             document.getElementById('taxaCdiAnual').value = formatPercent(cdiGlobal);
             document.getElementById('diasAno').value = diasAno;
             let html = "<table><thead><tr><th>Data</th><th>Descrição/Resumo</th><th>Banco</th><th>Conta Cedente</th><th>Conta Cessionário</th><th>Compromissada</th><th>Retorno Bruto</th><th>PU IDA</th><th>PU VOLTA</th><th>Taxa CDI Anual (%)</th><th>Ganho (R$) Diário</th><th class='action-cell'>Ações</th></tr></thead><tbody>";
             const resumo = {};
-            ops.forEach(op=>{
+            ops.forEach((op, index)=>{
                 const d = normalizeDate(op.data);
                 const comp = parseNumber(op.compromissada); 
                 const ret = parseNumber(op.retorno);
@@ -502,8 +479,8 @@
                         <td style="text-align:center;">${(Number(taxaUsada)||0).toFixed(4).replace('.',',')}</td>
                         <td class="${ganhoClass}">${formatBRL(ganho)}</td>
                         <td class="action-cell">
-                            <button class="btn small" onclick="editOperation(${operacoes.indexOf(op)})">Alterar</button>
-                            <button class="btn small secondary" onclick="deleteOperation(${operacoes.indexOf(op)})">Excluir</button>
+                            <button class="btn small edit-op-btn" data-index="${index}">Alterar</button>
+                            <button class="btn small secondary delete-op-btn" data-index="${index}">Excluir</button>
                         </td>
                     </tr>`;
                 }
@@ -533,7 +510,14 @@
         }
 
         /* Funções de manipulação */
-        function attachFilterListeners(){
+        
+        // FUNÇÃO QUE ATRIBUI TODOS OS LISTENERS DE EVENTO (CSP-COMPLIANT)
+        function setupEventListeners(){
+            // Botões de autenticação
+            document.getElementById('loginBtn').addEventListener('click', loginUser);
+            document.getElementById('logoutBtn').addEventListener('click', logoutUser);
+
+            // Botões de Filtro e Ações Principais
             document.getElementById('filterBtn').addEventListener('click', calculateAndRender);
             document.getElementById('resetFilterBtn').addEventListener('click', ()=>{
                 document.getElementById('filterStartDate').value = '';
@@ -542,8 +526,32 @@
             });
             document.getElementById('deleteAllBtn').addEventListener('click', deleteAllOperations);
             document.getElementById('loadExcelBtn').addEventListener('click', importSelectedFile);
-            // Associa o evento change ao input file
             document.getElementById('excelFile').addEventListener('change', selectFile);
+            
+            // Botões de Exportação e Impressão
+            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+            document.getElementById('printBtn').addEventListener('click', () => window.print());
+            
+            // Input de Configuração Global (onchange)
+            document.getElementById('taxaCdiAnual').addEventListener('change', calculateAndRender);
+            document.getElementById('diasAno').addEventListener('change', calculateAndRender);
+            document.getElementById('showIndividualOps').addEventListener('change', calculateAndRender); // onchange da checkbox
+
+            // Lançamento Manual
+            document.getElementById('addBtn').addEventListener('click', addManualOperation);
+            document.getElementById('cancelEditBtn').addEventListener('click', clearManualForm);
+
+            // Delegação de eventos para botões de Alterar/Excluir (CSP-compliant)
+            document.getElementById('resultTable').addEventListener('click', (e) => {
+                const target = e.target;
+                if (target.classList.contains('edit-op-btn')) {
+                    const index = parseInt(target.getAttribute('data-index'));
+                    editOperation(index);
+                } else if (target.classList.contains('delete-op-btn')) {
+                    const index = parseInt(target.getAttribute('data-index'));
+                    deleteOperation(index);
+                }
+            });
         }
 
         let fileToImport = null;
@@ -574,20 +582,17 @@
                 return;
             }
 
-            // Exibir loading (o seu HTML não tem um overlay, mas este é o lugar certo para ele)
-            
             const fileName = fileToImport.name.toUpperCase();
             
             const callbackFinal = (novosDados) => {
-                // Ocultar loading
                 fileToImport = null;
-                document.getElementById('excelFile').value = ''; // Limpa o input
+                document.getElementById('excelFile').value = ''; 
                 document.getElementById('loadExcelBtn').disabled = true;
 
                 if (novosDados.length > 0) {
                     operacoes = operacoes.concat(novosDados);
                     log(`✅ ${novosDados.length} novas operações importadas. Salvando na nuvem...`);
-                    saveState(); // Tenta salvar no Firestore
+                    saveState();
                 } else {
                     log('⚠️ Nenhum dado útil encontrado para importação. Verifique os cabeçalhos e a formatação numérica.');
                 }
@@ -610,7 +615,6 @@
                 const workbook = XLSX.read(data, { type: 'array', cellDates: true });
                 const firstSheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[firstSheetName];
-                // Converte para JSON. header:1 significa que a primeira linha é o cabeçalho.
                 const json = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, dateNF: 'yyyy-mm-dd' });
                 
                 if(json.length < 2) return callback([]);
@@ -630,10 +634,10 @@
 
         function readCSVFile(file, callback) {
             Papa.parse(file, {
-                header: false, // O parseDataFromSheet lida com o cabeçalho
+                header: false,
                 dynamicTyping: false,
                 skipEmptyLines: true,
-                encoding: "ISO-8859-1", // Suporte para caracteres latinos
+                encoding: "ISO-8859-1",
                 complete: function(results) {
                     if (results.data.length < 2) return callback([]);
 
@@ -652,7 +656,6 @@
         
         function parseDataFromSheet(headers, dataRows) {
             const map = {
-                // Tenta mapear o cabeçalho das colunas para as chaves do objeto `operacao`
                 data: ['DATA', 'DATA OPERAÇÃO'],
                 descricao: ['DESCRIÇÃO', 'RESUMO', 'EVENTO'],
                 banco: ['BANCO', 'CONTRAPARTE'],
@@ -673,7 +676,6 @@
                 }
             });
             
-            // Requer Data, Compromissada, Retorno, Descrição, Banco
             if (!columnIndex.data || !columnIndex.compromissada || !columnIndex.retorno || !columnIndex.descricao || !columnIndex.banco) {
                 log('⚠️ Cabeçalhos essenciais (Data, Compromissada, Retorno, Descrição, Banco) não encontrados. Verifique seu arquivo.');
                 return [];
@@ -681,7 +683,6 @@
 
             const parsedData = [];
             dataRows.forEach((row, index) => {
-                // Pular linhas vazias
                 if (row.every(cell => cell === undefined || cell === null || String(cell).trim() === '')) return;
 
                 const op = {
@@ -698,11 +699,9 @@
                     source: `Importação ${new Date().toISOString()}`
                 };
 
-                // Apenas adiciona se tiver data, compromissada (valor > 0) e retorno
                 if (op.data && op.compromissada > 0 && op.retorno >= 0) {
                     parsedData.push(op);
                 } else if (index < 10) {
-                    // console.warn para as primeiras 10 linhas que falham
                     console.warn(`Linha ${index + 2} ignorada: Dados incompletos. [Data: ${op.data}, Comp: ${op.compromissada}, Ret: ${op.retorno}]`, row);
                 }
             });
@@ -773,7 +772,6 @@
             const op = operacoes[index];
             if (!op) return;
 
-            // Formatação para exibição no formulário
             const formattedComp = op.compromissada.toLocaleString('pt-BR', {minimumFractionDigits: 2});
             const formattedRet = op.retorno.toLocaleString('pt-BR', {minimumFractionDigits: 2});
             const formattedTaxa = op.cdiTaxa > 0 ? op.cdiTaxa.toLocaleString('pt-BR', {minimumFractionDigits: 4}) : '';
@@ -791,7 +789,6 @@
             document.getElementById('addBtn').textContent = 'Salvar Alteração';
             document.getElementById('cancelEditBtn').style.display = 'inline-flex';
             log(`Editando operação na linha ${index + 1}.`);
-            // Rola a tela para o painel de lançamento manual
             document.getElementById('input-panel').scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -874,8 +871,8 @@
             </div>
         </div>
         <div id="header-right">
-            <button id="loginBtn" class="btn small" onclick="loginUser()">Login</button>
-            <button id="logoutBtn" class="btn small secondary" style="display:none;" onclick="logoutUser()">Sair</button>
+            <button id="loginBtn" class="btn small">Login</button>
+            <button id="logoutBtn" class="btn small secondary" style="display:none;">Sair</button>
 
             <button id="printBtn" class="btn small" title="Imprimir">Imprimir</button>
                         
@@ -924,7 +921,7 @@
                 </div>
                 <div style="margin-top:8px;">
                     <label style="font-weight:600;color:var(--muted)">
-                        <input type="checkbox" id="showIndividualOps" checked onchange="calculateAndRender()"> Mostrar Detalhe por Operação
+                        <input type="checkbox" id="showIndividualOps" checked> Mostrar Detalhe por Operação
                     </label>
                 </div>
             </div>
@@ -947,11 +944,11 @@
             <div class="input-row">
                 <div>
                     <label for="taxaCdiAnual">Taxa CDI Anual Global (%)</label>
-                    <input type="text" id="taxaCdiAnual" placeholder="14,90" value="14,90" onchange="calculateAndRender()">
+                    <input type="text" id="taxaCdiAnual" placeholder="14,90" value="14,90">
                 </div>
                 <div>
                     <label for="diasAno">Dias no Ano</label>
-                    <input type="text" id="diasAno" placeholder="252" value="252" onchange="calculateAndRender()">
+                    <input type="text" id="diasAno" placeholder="252" value="252">
                 </div>
             </div>
             <hr style="border:none;border-top:1px solid rgba(15,23,36,0.04);margin:12px 0;">
