@@ -7,18 +7,7 @@
     <meta http-equiv="Expires" content="0" />
     <title>Controle de Ganhos CDI — Cloud Enabled</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <style>        :root{            /* CORES PRINCIPAIS: AZUL MARINHO ESCURO PRIMÁRIO, VERMELHO SECUNDÁRIO */            --primary: #0A0A33;  /* Azul Marinho Escuro */            --primary-light: #1A1A55; /* Versão mais clara para gradiente/hover */                        --secondary: #C00000; /* Vermelho Forte (Secundário/Destaque) */            --secondary-light: #E00000; /* Vermelho Claro para gradiente/hover */                        --danger: #c62828;  /* Mantido para ações de exclusão */            --bg-start: #f4f8fb;            --bg-end: #eef6fb;            --card-bg: #ffffff;            --card-border: rgba(0,0,0,0.06);            --text-dark: #0f1724;            --muted: #6b7280;            --success: #2e7d32;            --gap: 12px;            --radius: 10px;            --shadow: 0 8px 20px rgba(16,24,40,0.06);        }        /* Base */        html,body{height:100%;margin:0;font-family:Inter, Roboto, system-ui, -apple-system, "Segoe UI", Arial;}        body{            background: linear-gradient(180deg,var(--bg-start),var(--bg-end));            color:var(--text-dark);            padding:calc(var(--gap) * 1.2);            -webkit-font-smoothing:antialiased;            font-size:14px;        }                /* Ajuste do Logo e Título para ficarem à esquerda e alinhados */        #siteLogo{             display:block; /* Muda para block */            max-width:140px;             width:100%;             height:auto;             border-radius:6px;             box-shadow:var(--shadow);             margin:0 0 6px 0; /* Remove margem automática, alinha à esquerda */        }        #logo-wrapper{ /* Este se torna desnecessário, mas o mantive no HTML abaixo para o logo */            margin-bottom:8px;        }                /* Header */        #header-container{             display:flex;             align-items:center;             gap:10px;             margin-bottom:8px;             /* Para manter o contêiner à esquerda se o logo estiver no topo */            width: fit-content;         }                #logo-placeholder{ font-size:1.4rem; color:var(--primary); }         h1{ margin:0; color:var(--text-dark); font-size:1.25rem; font-weight:700; }                /* Contêiner para logo e título juntos */        #left-header-content {            display: flex;            align-items: center;            gap: 10px;        }                /* Top actions compacto */        #top-actions{            display:flex; align-items:center; gap:10px; padding:10px;            background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--card-border);            flex-wrap:wrap;        }        #header-left{ display:flex; align-items:center; gap:10px; }        #header-right{ margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        /* --------------- BOTÕES SÓLIDOS COM CONTORNO BRANCO (ESTILO TRAVELEX) --------------- */        .btn {            display: inline-flex;            align-items: center;            justify-content: center;            gap: 8px;            padding: 8px 12px;            border-radius: 8px;            cursor: pointer;            font-weight: 600;            transition: all 0.2s ease;                        /* Estilo Padrão (AZUL MARINHO): Fundo Primary, Texto Branco, Borda Branca */            background: var(--primary); /* Fundo Azul Marinho */            color: white; /* Texto Branco */            border: 1px solid white; /* Borda Branca Sólida */            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* Sombra padrão */        }        /* Estilo Secundário (VERMELHO): Fundo Secondary, Texto Branco, Borda Branca */        .btn.secondary {            background: var(--secondary); /* Fundo Vermelho */            color: white; /* Texto Branco */            border: 1px solid white; /* Borda Branca Sólida */        }
-        .btn.small {             padding: 6px 10px;             font-size: 13px;             border-radius: 7px;         }
-        .btn:hover {             transform: translateY(-2px);             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);             background: var(--primary-light); /* Ligeiramente mais claro no hover */            border-color: white; /* Mantém a borda branca */        }        .btn.secondary:hover {            background: var(--secondary-light); /* Ligeiramente mais claro no hover */            border-color: white; /* Mantém a borda branca */            box-shadow: 0 8px 20px rgba(192, 0, 0, 0.25);        }
-        .btn:active {             transform: none;             filter: brightness(0.96);             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);        }
-        /* O botão danger é usado no delete, mas como você quer ele VERMELHO (secondary),            ele usará o estilo .btn.secondary, com uma pequena variação de cor */        .btn.danger {             background: var(--secondary);             color: white;             border: 1px solid white;             box-shadow: 0 4px 10px rgba(198, 40, 40, 0.25);        }        .btn.danger:hover {             filter: brightness(0.85);             border-color: white;         }        /* ----------------------------------------------------------- */
-
-        /* Layout empilhado: resultados em cima, painel embaixo */        #main-container{            display:flex;            flex-direction:column;            gap:14px;            align-items:stretch;        }        /* Cards */        .card{            background:var(--card-bg); padding:14px; border-radius:10px; box-shadow:var(--shadow); border:1px solid var(--card-border);            color:var(--text-dark);        }        /* Inputs */        .input-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }        .input-row label{ font-size:13px; color:var(--muted); font-weight:600; display:block; margin-bottom:6px; }        input[type="text"], input[type="date"]{            padding:8px 10px; border-radius:8px; border:1px solid rgba(15,23,36,0.06); background:#fff; color:var(--text-dark); min-width:120px;        }        /* Totals */        .totals{ display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:12px; }        .total-card{ padding:10px; border-radius:8px; border:1px solid rgba(15,23,36,0.04); background:linear-gradient(180deg,#fff,#fbfdff); }        .total-card h4{ margin:0; font-size:12px; color:var(--muted); }        .total-card p{ margin:6px 0 0 0; font-size:18px; font-weight:800; color:var(--text-dark); }        /* Ganho total em verde */        #totalCdiDisplay p { color: var(--success) !important; }        /* Tabela */        .table-wrap{ overflow:auto; border-radius:8px; }        table{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13px; color:var(--text-dark); }        thead th{            position:sticky; top:0; z-index:2;            /* Tira grande agora é Azul Marinho */            background: linear-gradient(180deg,var(--primary-light),var(--primary));            color:white; padding:10px 8px; text-align:left; font-weight:700;            border-bottom:1px solid rgba(0,0,0,0.06);        }        tbody td{ padding:8px 8px; border-bottom:1px solid rgba(0,0,0,0.04); text-align:right; }        tbody tr:nth-child(even){ background: rgba(0,0,0,0.02); }        td:first-child, th:first-child{ text-align:center; width:90px; }        /* Descrição/Resumo usa o novo primary (Azul Marinho) */        .col-left{             text-align:left;             max-width:260px;             overflow:hidden;             text-overflow:ellipsis;             white-space:nowrap;             color: var(--primary);             font-weight: 600;        }        /* Ações compactas */        .action-cell{ text-align:center; }                /* --------------- GANHO/PERDA (BADGE) E NEGRITO GERAL --------------- */        /* Estilo de Badge aplicado ao conteúdo da TD */        .ganho, .perda {             font-weight: 800;             padding: 2px 6px;             border-radius: 4px;             display: inline-block;             min-width: 60px;             text-align: center;        }
-        .ganho {             color: var(--success) !important;            background: rgba(46, 125, 50, 0.1);             border: 1px solid rgba(46, 125, 50, 0.2);        }
-        .perda {             color: var(--danger) !important;             background: rgba(198, 40, 40, 0.1);             border: 1px solid rgba(198, 40, 40, 0.2);        }        /* Estilo para b/strong em geral */        b, strong {            font-weight: 800;             color: var(--primary); /* Negrito no Azul Marinho do tema */        }        /* ------------------------------------------------------------------- */
-
-        /* Responsive */        @media (max-width:980px){            /* Centraliza em telas pequenas */            #siteLogo{ max-width:120px; display:block; margin:0 auto 8px; }            #header-container{ margin-bottom:0; width: 100%; justify-content: center; }            #left-header-content { justify-content: center; }            .input-row{ flex-direction:column; align-items:stretch; }        }        /* Print */        @media print{            body{ background:white; padding:0; color:black; }            #input-panel .file-label, #input-panel .logo-label, #deleteAllBtn { display:none; }        }    </style>
+    <style>        :root{            /* CORES PRINCIPAIS: AZUL MARINHO ESCURO PRIMÁRIO, VERMELHO SECUNDÁRIO */            --primary: #0A0A33;  /* Azul Marinho Escuro */            --primary-light: #1A1A55; /* Versão mais clara para gradiente/hover */                        --secondary: #C00000; /* Vermelho Forte (Secundário/Destaque) */            --secondary-light: #E00000; /* Vermelho Claro para gradiente/hover */                        --danger: #c62828;  /* Mantido para ações de exclusão */            --bg-start: #f4f8fb;            --bg-end: #eef6fb;            --card-bg: #ffffff;            --card-border: rgba(0,0,0,0.06);            --text-dark: #0f1724;            --muted: #6b7280;            --success: #2e7d32;            --gap: 12px;            --radius: 10px;            --shadow: 0 8px 20px rgba(16,24,40,0.06);        }        /* Base */        html,body{height:100%;margin:0;font-family:Inter, Roboto, system-ui, -apple-system, "Segoe UI", Arial;}        body{            background: linear-gradient(180deg,var(--bg-start),var(--bg-end));            color:var(--text-dark);            padding:calc(var(--gap) * 1.2);            -webkit-font-smoothing:antialiased;            font-size:14px;        }                /* Ajuste do Logo e Título para ficarem à esquerda e alinhados */        #siteLogo{             display:block; /* Muda para block */            max-width:140px;             width:100%;             height:auto;             border-radius:6px;             box-shadow:var(--shadow);             margin:0 0 6px 0; /* Remove margem automática, alinha à esquerda */        }        #logo-wrapper{ /* Este se torna desnecessário, mas o mantive no HTML abaixo para o logo */            margin-bottom:8px;        }                /* Header */        #header-container{             display:flex;             align-items:center;             gap:10px;             margin-bottom:8px;             /* Para manter o contêiner à esquerda se o logo estiver no topo */            width: fit-content;         }                #logo-placeholder{ font-size:1.4rem; color:var(--primary); }         h1{ margin:0; color:var(--text-dark); font-size:1.25rem; font-weight:700; }                /* Contêiner para logo e título juntos */        #left-header-content {            display: flex;            align-items: center;            gap: 10px;        }                /* Top actions compacto */        #top-actions{            display:flex; align-items:center; gap:10px; padding:10px;            background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--card-border);            flex-wrap:wrap;        }        #header-left{ display:flex; align-items:center; gap:10px; }        #header-right{ margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }        /* --------------- BOTÕES SÓLIDOS COM CONTORNO BRANCO (ESTILO TRAVELEX) --------------- */        .btn {            display: inline-flex;            align-items: center;            justify-content: center;            gap: 8px;            padding: 8px 12px;            border-radius: 8px;            cursor: pointer;            font-weight: 600;            transition: all 0.2s ease;                        /* Estilo Padrão (AZUL MARINHO): Fundo Primary, Texto Branco, Borda Branca */            background: var(--primary); /* Fundo Azul Marinho */            color: white; /* Texto Branco */            border: 1px solid white; /* Borda Branca Sólida */            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* Sombra padrão */        }        /* Estilo Secundário (VERMELHO): Fundo Secondary, Texto Branco, Borda Branca */        .btn.secondary {            background: var(--secondary); /* Fundo Vermelho */            color: white; /* Texto Branco */            border: 1px solid white; /* Borda Branca Sólida */        }        .btn.small {             padding: 6px 10px;             font-size: 13px;             border-radius: 7px;         }        .btn:hover {             transform: translateY(-2px);             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);             background: var(--primary-light); /* Ligeiramente mais claro no hover */            border-color: white; /* Mantém a borda branca */        }        .btn.secondary:hover {            background: var(--secondary-light); /* Ligeiramente mais claro no hover */            border-color: white; /* Mantém a borda branca */            box-shadow: 0 8px 20px rgba(192, 0, 0, 0.25);        }        .btn:active {             transform: none;             filter: brightness(0.96);             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);        }        /* O botão danger é usado no delete, mas como você quer ele VERMELHO (secondary),            ele usará o estilo .btn.secondary, com uma pequena variação de cor */        .btn.danger {             background: var(--secondary);             color: white;             border: 1px solid white;             box-shadow: 0 4px 10px rgba(198, 40, 40, 0.25);        }        .btn.danger:hover {             filter: brightness(0.85);             border-color: white;         }        /* ----------------------------------------------------------- */        /* Layout empilhado: resultados em cima, painel embaixo */        #main-container{            display:flex;            flex-direction:column;            gap:14px;            align-items:stretch;        }        /* Cards */        .card{            background:var(--card-bg); padding:14px; border-radius:10px; box-shadow:var(--shadow); border:1px solid var(--card-border);            color:var(--text-dark);        }        /* Inputs */        .input-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }        .input-row label{ font-size:13px; color:var(--muted); font-weight:600; display:block; margin-bottom:6px; }        input[type="text"], input[type="date"]{            padding:8px 10px; border-radius:8px; border:1px solid rgba(15,23,36,0.06); background:#fff; color:var(--text-dark); min-width:120px;        }        /* Totals */        .totals{ display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:12px; }        .total-card{ padding:10px; border-radius:8px; border:1px solid rgba(15,23,36,0.04); background:linear-gradient(180deg,#fff,#fbfdff); }        .total-card h4{ margin:0; font-size:12px; color:var(--muted); }        .total-card p{ margin:6px 0 0 0; font-size:18px; font-weight:800; color:var(--text-dark); }        /* Ganho total em verde */        #totalCdiDisplay p { color: var(--success) !important; }        /* Tabela */        .table-wrap{ overflow:auto; border-radius:8px; }        table{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13px; color:var(--text-dark); }        thead th{            position:sticky; top:0; z-index:2;            /* Tira grande agora é Azul Marinho */            background: linear-gradient(180deg,var(--primary-light),var(--primary));            color:white; padding:10px 8px; text-align:left; font-weight:700;            border-bottom:1px solid rgba(0,0,0,0.06);        }        tbody td{ padding:8px 8px; border-bottom:1px solid rgba(0,0,0,0.04); text-align:right; }        tbody tr:nth-child(even){ background: rgba(0,0,0,0.02); }        td:first-child, th:first-child{ text-align:center; width:90px; }        /* Descrição/Resumo usa o novo primary (Azul Marinho) */        .col-left{             text-align:left;             max-width:260px;             overflow:hidden;             text-overflow:ellipsis;             white-space:nowrap;             color: var(--primary);             font-weight: 600;        }        /* Ações compactas */        .action-cell{ text-align:center; }                /* --------------- GANHO/PERDA (BADGE) E NEGRITO GERAL --------------- */        /* Estilo de Badge aplicado ao conteúdo da TD */        .ganho, .perda {             font-weight: 800;             padding: 2px 6px;             border-radius: 4px;             display: inline-block;             min-width: 60px;             text-align: center;        }        .ganho {             color: var(--success) !important;            background: rgba(46, 125, 50, 0.1);             border: 1px solid rgba(46, 125, 50, 0.2);        }        .perda {             color: var(--danger) !important;             background: rgba(198, 40, 40, 0.1);             border: 1px solid rgba(198, 40, 40, 0.2);        }        /* Estilo para b/strong em geral */        b, strong {            font-weight: 800;             color: var(--primary); /* Negrito no Azul Marinho do tema */        }        /* ------------------------------------------------------------------- */        /* Responsive */        @media (max-width:980px){            /* Centraliza em telas pequenas */            #siteLogo{ max-width:120px; display:block; margin:0 auto 8px; }            #header-container{ margin-bottom:0; width: 100%; justify-content: center; }            #left-header-content { justify-content: center; }            .input-row{ flex-direction:column; align-items:stretch; }        }        /* Print */        @media print{            body{ background:white; padding:0; color:black; }            #input-panel .file-label, #input-panel .logo-label, #deleteAllBtn { display:none; }        }    </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -28,28 +17,30 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
+</head>
+<body onload="loadState()">
+    
     <script>
         // =========================================================================================
-        // 1. CONFIGURAÇÃO DO FIREBASE (Projeto: controle-cdi)
-        // PREENCHA COM SEUS DADOS CORRETOS!
+        // CONFIGURAÇÃO DO FIREBASE (Projeto: controle-cdi)
         // =========================================================================================
         const firebaseConfig = {
-            apiKey: "AIzaSyD_vxw2VcSPO_tMXgrl7quZ85ODvpqQuR8", // Sua API Key
+            apiKey: "AIzaSyD_vxw2VcSPO_tMXgrl7quZ85ODvpqQuR8",
             authDomain: "controle-cdi.firebaseapp.com",
             databaseURL: "https://controle-cdi-default-rtdb.firebaseio.com",
             projectId: "controle-cdi",
             storageBucket: "controle-cdi.firebasestorage.app",
             messagingSenderId: "215359645646",
             appId: "1:215359645646:web:cd61ae2f72e100d522ad9f"
-            // measurementId: "G-TV1M1QWQRC" // Opcional
         };
 
+        // Inicializa Firebase e Referências
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         let globalDocRef = null; // Referência do documento do usuário logado
 
         // =========================================================================================
-        // 2. FUNÇÕES DE AUTENTICAÇÃO (Login/Logout)
+        // FUNÇÕES DE AUTENTICAÇÃO (Login/Logout)
         // =========================================================================================
         function loginUser() {
             const email = prompt("Digite seu e-mail:");
@@ -58,12 +49,9 @@
             if (email && password) {
                 log('Tentando login...');
                 firebase.auth().signInWithEmailAndPassword(email, password)
-                    .then(() => {
-                        log(`Login bem-sucedido para ${email}!`);
-                        // loadState() será chamado pelo onAuthStateChanged
-                    })
+                    .then(() => log(`Login bem-sucedido para ${email}!`))
                     .catch(error => {
-                        // Se for 'user-not-found' ou 'wrong-password', tenta criar a conta
+                        // Se falhar, tenta criar a conta
                         if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                             log('Usuário não encontrado. Tentando criar a conta...');
                             firebase.auth().createUserWithEmailAndPassword(email, password)
@@ -82,34 +70,41 @@
                 .catch(error => log(`❌ Erro ao sair: ${error.message}`));
         }
 
-        // =========================================================================================
-        /* ---------- Funções utilitárias e lógica ---------- */
-        // ... (resto do seu código original) ...
-        // =========================================================================================
-
-        function log(message) { document.getElementById('log').textContent = message; }
+        /* ---------- Funções utilitárias e lógica (Início do seu código original) ---------- */
         
+        function log(message) { document.getElementById('log').textContent = message; }
+                
+        // Função para manter o tema fixo no Azul Marinho e Vermelho Secundário com Borda Branca
         function resetThemeToFixed() {
             // Aplica as cores Azul Marinho e Vermelho definidas no CSS :root
             document.documentElement.style.setProperty('--primary', '#0A0A33');
             document.documentElement.style.setProperty('--primary-light', '#1A1A55');
             document.documentElement.style.setProperty('--secondary', '#C00000');
             document.documentElement.style.setProperty('--secondary-light', '#E00000');
-            
-            // Reaplica o estilo SÓLIDO com borda branca
+                        
+            // Reaplica o estilo SÓLIDO com borda branca para botões primários
             document.querySelectorAll('.btn:not(.secondary):not(.danger)').forEach(b => {
                 b.style.background = 'var(--primary)';
                 b.style.border = '1px solid white';
                 b.style.color = 'white';
             });
-            
-            document.querySelectorAll('.btn.secondary, .btn.danger').forEach(b => {
+                        
+            // Reaplica o estilo SÓLIDO com borda branca para botões secundários
+            document.querySelectorAll('.btn.secondary').forEach(b => {
                 b.style.background = 'var(--secondary)';
                 b.style.border = '1px solid white';
                 b.style.color = 'white';
             });
+                        
+            // Garante que o danger button está com a cor e borda corretas (Vermelho)
+            document.querySelectorAll('.btn.danger').forEach(b=>{
+                b.style.background = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim(); // Usa secondary para o vermelho
+                b.style.color = '#ffffff';
+                b.style.border = '1px solid white';
+            });
         }
         
+        /* Compressão e extração de cor média (Mantida apenas para carregar o logo) */
         const logoInput = document.getElementById('logoFile');
         const siteLogo = document.getElementById('siteLogo');
         async function compressImageFile(file, quality = 0.7, maxSize = 600) {
@@ -136,32 +131,32 @@
                 reader.readAsDataURL(file);
             });
         }
-
+                
         if (logoInput) {
+            // Lógica para salvar a imagem quando o arquivo é selecionado
             logoInput.addEventListener('change', async (e) => {
                 const file = e.target.files && e.target.files[0];
                 if(!file) return;
-                
+                                
                 try {
                     const compressed = await compressImageFile(file, 0.7, 600);
                     siteLogo.src = compressed;
                     siteLogo.style.display = 'block';
-                    localStorage.setItem('cdiLogo', compressed);
+                    localStorage.setItem('cdiLogo', compressed); 
                     log('✅ Logo salvo localmente.');
                 } catch (err) {
                     console.error(err);
                     log('❌ Erro ao processar o logo.');
                 }
-                
                 resetThemeToFixed();
             });
-
-             const addLogoBtn = document.getElementById('addLogoBtn');
-             if (addLogoBtn) {
-                 addLogoBtn.addEventListener('click', () => {
-                     logoInput.click();
-                 });
-             }
+            // O botão 'Carregar Logo' apenas aciona o clique no input file 
+            const addLogoBtn = document.getElementById('addLogoBtn'); 
+            if (addLogoBtn) { 
+                addLogoBtn.addEventListener('click', () => { 
+                    logoInput.click(); 
+                }); 
+            }
         }
         
         const removeLogoBtn = document.getElementById('removeLogoBtn');
@@ -175,8 +170,8 @@
                 log('🗑️ Logo removido. Tema restaurado.');
             });
         }
-
-        // --- Funções de processamento de dados ---        
+        
+        // --- Funções de processamento de dados (mantidas como estão) ---
         function cleanCurrency(v){             if(typeof v!=='string') v=String(v);             let cleanString = v.replace(/[R$\s]/g, '');            cleanString = cleanString.replace(/\./g, '');            cleanString = cleanString.replace(/,/g, '.');            const n=parseFloat(cleanString);             return isNaN(n)?0:n;         }
         function parseNumber(v){             if(v===undefined||v===null||v==='') return 0;             if(typeof v==='string' && (v.includes(',') || v.includes('R$'))) return cleanCurrency(v);             const n=parseFloat(v);             return isNaN(n)?0:n;         }                
         function cleanCdiTaxa(v){             if(v===undefined||v===null||v==='') return 0;             if(typeof v!=='string') v=String(v);             v=v.replace(/[^0-9,.]/g,'');             let c=v.replace(',','.');             const parts=c.split('.');             if(parts.length>2) c=parts.slice(0,-1).join('')+'.'+parts.slice(-1);             const n=parseFloat(c);             return isNaN(n)?0:n;         }                
@@ -198,11 +193,12 @@
             try{ const d=new Date(s); if(!isNaN(d)) return d.toISOString().split('T')[0]; }catch(e){}             
             return '';         
         }                
+        
         /* Persistência e estado */        
         let operacoes = [], totalCompromissada=0, totalRetorno=0, totalGanho=0;
         
         // =========================================================================================
-        // 3. FUNÇÃO saveState() - AGORA SALVA NO FIRESTORE
+        // FUNÇÃO saveState() - AGORA SALVA NO FIRESTORE
         // =========================================================================================
         function saveState() { 
             if (!globalDocRef) {
@@ -231,7 +227,7 @@
         }
 
         // =========================================================================================
-        // 4. FUNÇÃO loadState() - AGORA CARREGA VIA FIREBASE AUTH
+        // FUNÇÃO loadState() - AGORA CARREGA VIA FIREBASE AUTH
         // =========================================================================================
         window.loadState = ()=>{
             resetThemeToFixed();
@@ -246,7 +242,6 @@
                     document.getElementById('currentUserDisplay').textContent = user.email;
                     loginBtn.style.display = 'none';
                     logoutBtn.style.display = 'inline-flex';
-                    log(`Usuário logado: ${user.email}. Carregando dados da nuvem...`);
                     
                     globalDocRef = db.collection('users').doc(user.uid); 
                     
@@ -274,11 +269,26 @@
                     // Usuário deslogado
                     globalDocRef = null;
                     operacoes = [];
-                    document.getElementById('currentUserDisplay').textContent = 'Desconectado';
-                    loginBtn.style.display = 'inline-flex';
-                    logoutBtn.style.display = 'none';
+                    // Verifica se os elementos existem antes de tentar manipulá-los
+                    if (document.getElementById('currentUserDisplay')) document.getElementById('currentUserDisplay').textContent = 'Desconectado';
+                    if (loginBtn) loginBtn.style.display = 'inline-flex';
+                    if (logoutBtn) logoutBtn.style.display = 'none';
                     log('Por favor, faça o login para acessar os dados na nuvem.');
-                    calculateAndRender(); // Renderiza vazio
+                    
+                    // Carrega do localStorage (apenas para fallback ou testes antigos)
+                    try{
+                        const s = localStorage.getItem('cdiControlState');
+                        if(s){
+                            const st = JSON.parse(s);
+                            operacoes = st.operacoes || [];
+                            document.getElementById('taxaCdiAnual').value = st.taxaCdiAnual || '14,90';
+                            document.getElementById('diasAno').value = st.diasAno || '252';
+                            log(`⚠️ Carregando dados locais (${operacoes.length} operações). Faça login para salvar na nuvem.`);
+                        } else log('Aguardando... Não há dados salvos localmente.');
+                    }catch(e){ operacoes=[]; log('❌ Erro ao carregar dados locais.'); }
+                    
+                    attachFilterListeners();
+                    calculateAndRender(); // Renderiza com dados locais (se houver)
                 }
             });
 
@@ -291,6 +301,7 @@
                 }
             } catch (err) { console.warn(err); }
         };
+        
         /* Renderização */        
         function updateTotalCards(){ document.querySelector('#totalCompromissadaDisplay p').textContent = formatBRL(totalCompromissada); document.querySelector('#totalRetornoDisplay p').textContent = formatBRL(totalRetorno); document.querySelector('#totalCdiDisplay p').textContent = formatBRL(totalGanho); }        
         function calculateAndRender(){
@@ -383,27 +394,23 @@
             });
             document.getElementById('deleteAllBtn').addEventListener('click', deleteAllOperations);
             document.getElementById('loadExcelBtn').addEventListener('click', importSelectedFile);
+            // Associa o evento change ao input file
             document.getElementById('excelFile').addEventListener('change', selectFile);
         }
 
         let fileToImport = null;
         function selectFile(event) {
             const files = event.target.files;
-            const fileNameDisplay = document.getElementById('fileNameDisplay');
             const importBtn = document.getElementById('loadExcelBtn');
 
             if (files.length === 0) {
                 fileToImport = null;
-                fileNameDisplay.textContent = '';
-                fileNameDisplay.style.display = 'none';
                 importBtn.disabled = true;
                 log('Nenhum arquivo para importar.');
                 return;
             }
             
             fileToImport = files[0]; 
-            fileNameDisplay.textContent = fileToImport.name;
-            fileNameDisplay.style.display = 'inline-block';
             importBtn.disabled = false; 
             log(`Arquivo selecionado: ${fileToImport.name}. Clique em Importar para processar.`);
         }
@@ -419,16 +426,17 @@
                 return;
             }
 
-            document.getElementById('loadingOverlay').style.display = 'flex';
+            // Exibir loading (o seu HTML não tem um overlay, mas este é o lugar certo para ele)
+            // document.getElementById('loadingOverlay').style.display = 'flex';
+            
             const fileName = fileToImport.name.toUpperCase();
             
             const callbackFinal = (novosDados) => {
-                document.getElementById('loadingOverlay').style.display = 'none';
+                // Ocultar loading
+                // document.getElementById('loadingOverlay').style.display = 'none';
                 fileToImport = null;
                 document.getElementById('excelFile').value = ''; // Limpa o input
                 document.getElementById('loadExcelBtn').disabled = true;
-                document.getElementById('fileNameDisplay').textContent = '';
-                document.getElementById('fileNameDisplay').style.display = 'none';
 
                 if (novosDados.length > 0) {
                     operacoes = operacoes.concat(novosDados);
@@ -444,7 +452,7 @@
             } else if (fileName.endsWith('.CSV') || fileName.endsWith('.TXT')) {
                 readCSVFile(fileToImport, callbackFinal);
             } else {
-                document.getElementById('loadingOverlay').style.display = 'none';
+                // document.getElementById('loadingOverlay').style.display = 'none';
                 log(`Arquivo ${fileToImport.name} ignorado. Formato não suportado.`);
                 callbackFinal([]);
             }
@@ -706,17 +714,10 @@
             document.getElementById('printBtn').addEventListener('click', () => window.print());
             document.getElementById('addBtn').addEventListener('click', addManualOperation);
             document.getElementById('cancelEditBtn').addEventListener('click', clearManualForm);
-            document.getElementById('addLogoBtn').addEventListener('click', () => document.getElementById('logoFile').click());
+            // O botão 'Carregar Logo' já tem o listener no evento `change` do input file
         });
 
     </script>
-</head>
-<body onload="loadState()">
-    <div id="loadingOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.7);z-index:9999;display:none;justify-content:center;align-items:center;font-size:1.2rem;color:var(--primary);font-weight:700;">
-        <span style="display:inline-block;border:4px solid rgba(10, 10, 51, 0.2);border-top:4px solid var(--primary);border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;"></span>
-        <span style="margin-left:15px;">Processando...</span>
-    </div>
-    <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
 
     <div id="logo-wrapper">
         <img id="siteLogo" alt="Logo do site">
@@ -739,25 +740,26 @@
             <button id="logoutBtn" class="btn small secondary" style="display:none;" onclick="logoutUser()">Sair</button>
 
             <button id="printBtn" class="btn small" title="Imprimir">Imprimir</button>
-            
+                        
             <button id="exportBtn" class="btn small secondary" title="Exportar">Exportar</button>
-            
+                        
             <label class="file-label" for="excelFile" title="Selecionar arquivos">
-                <input type="file" id="excelFile" accept=".xlsx,.xls,.csv,.txt" multiple style="display: none;">
-                <span class="btn small secondary">Buscar Arquivo</span>
+                <input type="file" id="excelFile" accept=".xlsx,.xls,.csv,.txt" multiple>
+                <span class="btn small">Procurar</span>
             </label>
-            
-            <span id="fileNameDisplay" style="font-size:13px; color:var(--primary); font-weight:600; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:none;"></span>
-            
+                        
             <button id="loadExcelBtn" class="btn small secondary" title="Importar arquivos" disabled>Importar</button>
-            
+                        
             <label class="logo-label" for="logoFile" title="Carregar logo">
-                <input type="file" id="logoFile" accept="image/*" style="display: none;">
-                <span id="addLogoBtn" class="btn small">Carregar Logo</span>
+                <input type="file" id="logoFile" accept="image/*">
+                <span class="btn small">Procurar</span>
             </label>
-            <button id="removeLogoBtn" class="btn small" title="Remover">Remover Logo</button>
-            
-            <button id="deleteAllBtn" class="btn small secondary danger" title="Excluir tudo">🗑️ Excluir Tudo</button>
+                        
+            <button id="addLogoBtn" class="btn small secondary" title="Carregar Logo">Carregar Logo</button>
+                         
+            <button id="removeLogoBtn" class="btn small" title="Remover">Remover</button>
+                        
+            <button id="deleteAllBtn" class="btn small secondary danger" title="Excluir tudo">🗑️</button>
         </div>
     </div>
     <div id="main-container">
