@@ -1,206 +1,464 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<title>Comparador TED + Tarifas (PDF ⇄ Excel)</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Comparador PDF ⇄ Excel — Controle CDI (Cloud)</title>
 
-<!-- PDF.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- Dependências -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
-<!-- XLSX -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background:#f5f5f5;
-}
-h2 { margin-top: 30px; }
-
-.box {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 25px;
-    box-shadow: 0 0 8px rgba(0,0,0,0.15);
-}
-
-button {
-    padding: 10px 16px;
-    border: none;
-    background: #0077cc;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-}
-button:hover { background: #005fa3; }
-
-.status {
-    margin-top: 8px;
-    font-weight: bold;
-    color: green;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-table th, table td {
-    padding: 8px;
-    border: 1px solid #ccc;
-}
-table th { background: #eee; }
+  :root{
+    --primary:#0A0A33; --primary-light:#1A1A55; --secondary:#C00000; --muted:#6b7280;
+    --bg:#f4f8fb; --card:#fff; --radius:10px; --gap:12px; --shadow: 0 8px 20px rgba(16,24,40,0.06);
+  }
+  *{box-sizing:border-box}
+  body{font-family:Inter,Roboto,Arial; margin:0; padding:20px; background:linear-gradient(180deg,#f4f8fb,#eef6fb); color:#0f1724}
+  .card{background:var(--card); border-radius:var(--radius); padding:12px; box-shadow:var(--shadow); border:1px solid rgba(0,0,0,0.05); margin-bottom:12px}
+  .top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  h1{margin:0;font-size:18px}
+  .btn{background:var(--primary); color:#fff; border:1px solid white; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600}
+  .btn.secondary{background:var(--secondary)}
+  input[type=file]{display:none}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .small{padding:6px 8px;font-size:13px}
+  #resultTable{max-height:360px; overflow:auto}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;border-bottom:1px solid rgba(0,0,0,0.04);text-align:left}
+  th{background:linear-gradient(180deg,var(--primary-light),var(--primary));color:#fff;position:sticky;top:0}
+  .muted{color:var(--muted);font-size:13px}
+  pre#log{height:90px; overflow:auto; background:#f7fafc; padding:8px; border-radius:8px}
+  @media(max-width:800px){ .row{flex-direction:column;align-items:stretch} }
 </style>
-
 </head>
 <body>
+  <div class="card top">
+    <div>
+      <h1>Comparador PDF ⇄ Excel — Controle CDI</h1>
+      <div class="muted">1️⃣ Carregar PDF • 2️⃣ Carregar Excel • 3️⃣ Comparar</div>
+    </div>
+    <div style="margin-left:auto" id="userActions">
+      <span id="currentUserDisplay" class="muted">Desconectado</span>
+      <button id="loginBtn" class="btn small">Login</button>
+      <button id="logoutBtn" class="btn small secondary" style="display:none">Sair</button>
+    </div>
+  </div>
 
-<h1>Comparador TED + Tarifas (PDF ⇄ Excel)</h1>
+  <!-- Ações principais -->
+  <div class="card">
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div>
+        <label class="btn small" for="pdfFile">Carregar PDF</label>
+        <input id="pdfFile" type="file" accept="application/pdf">
+      </div>
 
-<div class="box">
-    <h2>1️⃣ Carregar PDF da Movimentação</h2>
-    <button onclick="document.getElementById('pdfInput').click()">Carregar PDF</button>
-    <input type="file" id="pdfInput" accept="application/pdf" style="display:none">
+      <div>
+        <label class="btn small" for="excelFile">Carregar Excel</label>
+        <input id="excelFile" type="file" accept=".xlsx,.xls,.csv,.txt" multiple>
+      </div>
 
-    <div id="pdfStatus"></div>
-</div>
+      <div>
+        <button id="importSelectedBtn" class="btn small secondary">Importar Selecionado</button>
+      </div>
 
-<div class="box">
-    <h2>2️⃣ Carregar Excel para Conciliação</h2>
-    <button onclick="document.getElementById('excelInput').click()">Carregar Excel</button>
-    <input type="file" id="excelInput" accept=".xlsx,.xls" style="display:none">
+      <div>
+        <button id="compareBtn" class="btn small">Comparar PDF ⇄ Excel</button>
+      </div>
 
-    <div id="excelStatus"></div>
-</div>
+      <div style="margin-left:auto">
+        <button id="exportBtn" class="btn small secondary">Exportar</button>
+      </div>
+    </div>
 
-<div class="box">
-    <h2>3️⃣ Resultado da Conciliação</h2>
-    <button onclick="comparar()">Comparar PDF ⇄ Excel</button>
+    <div style="margin-top:10px" class="muted">
+      <strong>Observação:</strong> selecione o Excel e clique em <em>Importar Selecionado</em>. Se estiver logado, os dados serão salvos no Firestore; caso contrário, ficarão no localStorage.
+    </div>
+  </div>
 
-    <div id="resultado"></div>
-</div>
+  <!-- Resultados / Tabela -->
+  <div class="card">
+    <h3>Resultado da Conciliação</h3>
+    <div id="resultTable" aria-live="polite">
+      <div class="muted">Nenhum dado carregado.</div>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="card">
+    <h4>Log</h4>
+    <pre id="log">Aguardando...</pre>
+  </div>
 
 <script>
-let pdfValores = [];
-let excelValores = [];
+/* ==========================
+   CONFIGURAÇÃO FIREBASE (já com seu projeto)
+   ========================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyD_vxw2VcSPO_tMXgrl7quZ85ODvpqQuR8",
+  authDomain: "controle-cdi.firebaseapp.com",
+  databaseURL: "https://controle-cdi-default-rtdb.firebaseio.com",
+  projectId: "controle-cdi",
+  storageBucket: "controle-cdi.firebasestorage.app",
+  messagingSenderId: "215359645646",
+  appId: "1:215359645646:web:cd61ae2f72e100d522ad9f"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-/* -------------------- CARREGAR PDF -------------------- */
-document.getElementById("pdfInput").addEventListener("change", async (ev) => {
-    const file = ev.target.files[0];
-    if (!file) return;
+/* ==========================
+   Estado
+   ========================== */
+let operacoes = []; // array de objetos {data, descricao, banco, compromissada, retorno, ...}
+let fileQueue = []; // arquivos selecionados (FileList -> array)
+let selectedPdf = null;
 
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+/* ==========================
+   Utilitários
+   ========================== */
+function log(msg){
+  const el = document.getElementById('log');
+  const now = new Date().toLocaleString();
+  el.textContent = `${now} — ${msg}\n` + el.textContent;
+}
+function formatBRL(n){ try { return Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2}); }catch(e){return n} }
+function normalizeDate(s){
+  if(!s) return '';
+  s=String(s).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(s)){
+    const [d,m,y]=s.split('/'); return `${y}-${m}-${d}`;
+  }
+  const num = parseFloat(s);
+  if(!isNaN(num) && num>25569 && num<70000){
+    const base = new Date('1899-12-30');
+    const date = new Date(base.getTime() + num*24*60*60*1000);
+    const y = date.getUTCFullYear(), m = (date.getUTCMonth()+1).toString().padStart(2,'0'), d = date.getUTCDate().toString().padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+  const d = new Date(s);
+  if(!isNaN(d)) return d.toISOString().split('T')[0];
+  return '';
+}
+function parseNumber(v){
+  if(v===undefined||v===null||v==='') return 0;
+  if(typeof v === 'number') return v;
+  if(typeof v === 'string'){
+    let s=v.replace(/[R$\s]/g,'').trim();
+    if(s.includes('.') && s.includes(',')){
+      if(s.lastIndexOf(',')>s.lastIndexOf('.')) { s = s.replace(/\./g,'').replace(',','.'); }
+      else s = s.replace(/,/g,'');
+    } else { s = s.replace(/\./g,'').replace(',','.'); }
+    const n = parseFloat(s);
+    return isNaN(n)?0:n;
+  }
+  return 0;
+}
 
-    pdfValores = [];
-
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const text = await page.getTextContent();
-
-        const linhas = text.items.map(t => t.str);
-
-        linhas.forEach(l => {
-            const m = l.match(/(\d{2}\/\d{2}\/\d{4}).*?(-?\d+,\d{2})/);
-            if (m) {
-                pdfValores.push({
-                    data: m[1],
-                    valor: parseFloat(m[2].replace(".", "").replace(",", "."))
-                });
-            }
-        });
+/* ==========================
+   Autenticação (simples)
+   ========================== */
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const email = prompt('Email:');
+  const pass = prompt('Senha:');
+  if(!email || !pass) { log('Login cancelado.'); return; }
+  log('Tentando login...');
+  try {
+    await firebase.auth().signInWithEmailAndPassword(email, pass);
+    log('Login bem-sucedido.');
+  } catch(e){
+    if(e.code === 'auth/user-not-found'){
+      try {
+        await firebase.auth().createUserWithEmailAndPassword(email, pass);
+        log('Conta criada e logada.');
+      } catch(err){
+        log('Erro criando conta: ' + err.message);
+      }
+    } else {
+      log('Erro login: ' + e.message);
     }
-
-    document.getElementById("pdfStatus").innerHTML = `<div class="status">PDF carregado ✔ (${pdfValores.length} registros)</div>`;
+  }
+});
+document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+  await firebase.auth().signOut();
+  log('Logout efetuado.');
 });
 
-/* -------------------- CARREGAR EXCEL -------------------- */
-document.getElementById("excelInput").addEventListener("change", async (ev) => {
-    const file = ev.target.files[0];
-    if (!file) return;
-
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data);
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(sheet);
-
-    excelValores = [];
-
-    json.forEach(l => {
-        const valor = parseFloat(String(l.Valor || l.VALOR || l.valor).replace(".", "").replace(",", "."));
-
-        if (!isNaN(valor)) {
-            excelValores.push({
-                data: l.Data || l.DATA || l.data,
-                valor: valor
-            });
-        }
-    });
-
-    document.getElementById("excelStatus").innerHTML = `<div class="status">Excel carregado ✔ (${excelValores.length} registros)</div>`;
+firebase.auth().onAuthStateChanged(async (user)=>{
+  const display = document.getElementById('currentUserDisplay');
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if(user){
+    display.textContent = user.email;
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+    // carrega dados do Firestore (se houver)
+    try {
+      const doc = await db.collection('users').doc(user.uid).get();
+      if(doc.exists){
+        const st = doc.data();
+        operacoes = st.operacoes || [];
+        renderTable();
+        log(`🔁 ${operacoes.length} operações carregadas do Firestore.`);
+      } else {
+        log('Nenhum dado na nuvem — pronto para salvar.');
+      }
+    } catch(e){
+      log('Erro lendo Firestore: ' + e.message);
+    }
+  } else {
+    display.textContent = 'Desconectado';
+    loginBtn.style.display = 'inline-block';
+    logoutBtn.style.display = 'none';
+    // carrega dados locais
+    try {
+      const s = localStorage.getItem('cdiControlState');
+      if(s){ operacoes = JSON.parse(s).operacoes || []; renderTable(); log(`🔁 ${operacoes.length} operações carregadas do localStorage.`); }
+    } catch(e){ log('Erro carregando local: ' + e.message); }
+  }
 });
 
-/* -------------------- COMPARAR -------------------- */
-function comparar() {
-    if (pdfValores.length === 0 || excelValores.length === 0) {
-        alert("Carregue o PDF e o Excel antes!");
-        return;
+/* ==========================
+   Seleção de arquivos
+   ========================== */
+const excelInput = document.getElementById('excelFile');
+const pdfInput = document.getElementById('pdfFile');
+
+excelInput.addEventListener('change', (ev)=>{
+  const files = Array.from(ev.target.files || []);
+  fileQueue = files;
+  if(files.length) {
+    const list = files.map(f=>f.name).join(', ');
+    log('Arquivos prontos: ' + list);
+  } else {
+    log('Nenhum arquivo Excel selecionado.');
+  }
+});
+
+pdfInput.addEventListener('change', (ev)=>{
+  const f = ev.target.files && ev.target.files[0];
+  if(f) {
+    selectedPdf = f;
+    log('PDF selecionado: ' + f.name + ' (nota: processamento de PDF não implementado aqui — placeholder).');
+  } else {
+    selectedPdf = null;
+  }
+});
+
+/* ==========================
+   Importar Excel (XLSX/CSV)
+   ========================== */
+document.getElementById('importSelectedBtn').addEventListener('click', async ()=>{
+  if(!fileQueue || fileQueue.length===0){ log('Nenhum arquivo selecionado para importar.'); return; }
+  // processa arquivos um a um
+  let totalAdded = 0;
+  for(const f of fileQueue){
+    const name = f.name.toUpperCase();
+    if(name.endsWith('.CSV') || name.endsWith('.TXT')){
+      const added = await readCSVFile(f);
+      totalAdded += added;
+    } else if(name.endsWith('.XLSX') || name.endsWith('.XLS')){
+      const added = await readExcelFile(f);
+      totalAdded += added;
+    } else {
+      log('Formato ignorado: ' + f.name);
     }
+  }
+  // limpa seleção
+  fileQueue = [];
+  excelInput.value = '';
+  if(totalAdded>0){
+    log(`✅ ${totalAdded} operações importadas.`);
+    saveState();
+    renderTable();
+  } else {
+    log('⚠️ Nenhuma operação válida encontrada nos arquivos.');
+  }
+});
 
-    const achados = [];
-    const naoAchados = [];
-
-    pdfValores.forEach(p => {
-        const encontrado = excelValores.find(e =>
-            Math.abs(e.valor - p.valor) < 0.001
-        );
-
-        if (encontrado) achados.push({ pdf: p, excel: encontrado });
-        else naoAchados.push(p);
-    });
-
-    let html = "<h3>Registros Encontrados</h3>";
-    html += gerarTabelaAchados(achados);
-
-    html += "<h3>Não Encontrados no Excel</h3>";
-    html += gerarTabelaNaoAchados(naoAchados);
-
-    document.getElementById("resultado").innerHTML = html;
+function readExcelFile(file){
+  return new Promise((resolve)=>{
+    const r = new FileReader();
+    r.onload = (e)=>{
+      try {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, {type:'array', cellDates:true});
+        const first = wb.SheetNames[0];
+        const ws = wb.Sheets[first];
+        const arr = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, dateNF:'yyyy-mm-dd'});
+        if(!arr || arr.length<2){ resolve(0); return; }
+        const headers = arr[0].map(h=>String(h||'').trim().toUpperCase());
+        const rows = arr.slice(1);
+        const parsed = parseDataFromSheet(headers, rows);
+        operacoes = operacoes.concat(parsed);
+        resolve(parsed.length);
+      } catch(err){
+        console.error(err);
+        log('Erro lendo XLSX: ' + err.message);
+        resolve(0);
+      }
+    };
+    r.onerror = ()=>{ log('Erro leitura arquivo: ' + file.name); resolve(0); };
+    r.readAsArrayBuffer(file);
+  });
 }
 
-/* -------------------- TABELAS -------------------- */
-function gerarTabelaAchados(lista) {
-    if (lista.length === 0) return "<p>Nenhum encontrado.</p>";
-
-    let t = "<table><tr><th>Data PDF</th><th>Valor PDF</th><th>Data Excel</th><th>Valor Excel</th></tr>";
-
-    lista.forEach(l => {
-        t += `<tr>
-                <td>${l.pdf.data}</td>
-                <td>${l.pdf.valor.toFixed(2)}</td>
-                <td>${l.excel.data}</td>
-                <td>${l.excel.valor.toFixed(2)}</td>
-              </tr>`;
+function readCSVFile(file){
+  return new Promise((resolve)=>{
+    Papa.parse(file, {
+      header:false, skipEmptyLines:true, encoding:'ISO-8859-1',
+      complete: function(res){
+        if(!res || !res.data || res.data.length<2){ resolve(0); return; }
+        const headers = res.data[0].map(h=>String(h||'').trim().toUpperCase());
+        const rows = res.data.slice(1);
+        const parsed = parseDataFromSheet(headers, rows);
+        operacoes = operacoes.concat(parsed);
+        resolve(parsed.length);
+      },
+      error: function(err){
+        log('Erro leitura CSV: ' + err.message);
+        resolve(0);
+      }
     });
-
-    return t + "</table>";
+  });
 }
 
-function gerarTabelaNaoAchados(lista) {
-    if (lista.length === 0) return "<p>Todos encontrados no Excel ✔</p>";
-
-    let t = "<table><tr><th>Data</th><th>Valor</th></tr>";
-
-    lista.forEach(l => {
-        t += `<tr><td>${l.data}</td><td>${l.valor.toFixed(2)}</td></tr>`;
-    });
-
-    return t + "</table>";
+/* ==========================
+   Parse genérico da planilha
+   ========================== */
+function parseDataFromSheet(headers, rows){
+  const map = {
+    data: ['DATA','DATA OPERAÇÃO','DATAOPERAÇÃO','DATA_OPERACAO'],
+    descricao: ['DESCRIÇÃO','DESCRICAO','RESUMO','EVENTO','DESCRICAO'],
+    banco: ['BANCO','CONTRAPARTE'],
+    compromissada: ['VALOR COMPROMISSADA','COMPROMISSADA','VALOR COMPROMISSADO','VALOR','VALOR APLICADO'],
+    retorno: ['VALOR RETORNO BRUTO','RETORNO BRUTO','RETORNO'],
+    cdiTaxa: ['TX. CDI %','TX. 252','TAXA','TAXA CDI'],
+    puIda: ['PU IDA','PU INICIAL'],
+    puVolta: ['PU VOLTA','PU FINAL']
+  };
+  const columnIndex = {};
+  Object.keys(map).forEach(k=>{
+    const names = map[k];
+    const idx = headers.findIndex(h=> names.includes(h));
+    if(idx!==-1) columnIndex[k]=idx;
+  });
+  // checagem mínima
+  if(columnIndex.data===undefined || columnIndex.compromissada===undefined || columnIndex.retorno===undefined){
+    log('⚠️ Cabeçalhos essenciais não detectados (Data / Compromissada / Retorno). Verifique seu arquivo.');
+    return [];
+  }
+  const out = [];
+  rows.forEach((row, i)=>{
+    if(!row || row.length===0) return;
+    if(row.every(c => c===undefined || c===null || String(c).trim()==='')) return;
+    const op = {
+      data: normalizeDate(row[columnIndex.data]),
+      descricao: row[columnIndex.descricao] || '',
+      banco: row[columnIndex.banco] || '',
+      compromissada: parseNumber(row[columnIndex.compromissada]),
+      retorno: parseNumber(row[columnIndex.retorno]),
+      cdiTaxa: (columnIndex.cdiTaxa!==undefined ? parseNumber(row[columnIndex.cdiTaxa]) : 0),
+      puIda: (columnIndex.puIda!==undefined ? parseNumber(row[columnIndex.puIda]) : 0),
+      puVolta: (columnIndex.puVolta!==undefined ? parseNumber(row[columnIndex.puVolta]) : 0),
+      source: 'import-' + new Date().toISOString()
+    };
+    if(op.data && op.compromissada>0 && op.retorno>=0) out.push(op);
+    else if(i<6) console.warn('Linha ignorada (incompleta):', row);
+  });
+  return out;
 }
+
+/* ==========================
+   Render tabela
+   ========================== */
+function renderTable(){
+  const container = document.getElementById('resultTable');
+  if(!operacoes || operacoes.length===0){
+    container.innerHTML = '<div class="muted">Nenhuma operação carregada.</div>';
+    return;
+  }
+  // organiza por data
+  const ops = operacoes.slice().sort((a,b)=> (a.data||'').localeCompare(b.data||''));
+  let html = '<table><thead><tr><th>Data</th><th>Descrição</th><th>Banco</th><th>Compromissada</th><th>Retorno</th></tr></thead><tbody>';
+  ops.forEach((op, idx)=>{
+    html += `<tr>
+      <td>${op.data ? op.data.split('-').reverse().join('/') : '-'}</td>
+      <td>${(op.descricao||'-')}</td>
+      <td>${(op.banco||'-')}</td>
+      <td style="text-align:right">${formatBRL(op.compromissada)}</td>
+      <td style="text-align:right">${formatBRL(op.retorno)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+/* ==========================
+   Salvar estado (local ou Firestore)
+   ========================== */
+async function saveState(){
+  const user = firebase.auth().currentUser;
+  const payload = { operacoes, saved_at: new Date().toISOString() };
+  if(user){
+    try {
+      await db.collection('users').doc(user.uid).set({ operacoes, saved_at: firebase.firestore.FieldValue.serverTimestamp() });
+      log('✅ Dados salvos na nuvem (Firestore).');
+    } catch(e){
+      log('Erro salvando na nuvem: ' + e.message);
+      // fallback local
+      try { localStorage.setItem('cdiControlState', JSON.stringify(payload)); log('✅ Dados salvos localmente (fallback).'); } catch(err){ log('Erro saving local fallback'); }
+    }
+  } else {
+    try {
+      localStorage.setItem('cdiControlState', JSON.stringify(payload));
+      log('✅ Dados salvos localmente (usuário não logado).');
+    } catch(e){
+      log('Erro salvando localmente: ' + e.message);
+    }
+  }
+}
+
+/* ==========================
+   Exportar (simples)
+   ========================== */
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  if(!operacoes || operacoes.length===0){ log('Nada para exportar.'); return; }
+  const headers = ['Data','Descricao','Banco','Compromissada','Retorno','Fonte'];
+  const rows = operacoes.map(op=>[op.data, op.descricao, op.banco, op.compromissada, op.retorno, op.source||'']);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Dados');
+  XLSX.writeFile(wb, 'Controle_CDI_Export_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  log('✅ Export concluído.');
+});
+
+/* ==========================
+   Comparar PDF ⇄ Excel (placeholder)
+   ========================== */
+document.getElementById('compareBtn').addEventListener('click', ()=>{
+  if(!selectedPdf){ log('Nenhum PDF selecionado. Ainda assim você pode comparar Excel -> Excel.'); }
+  if(!operacoes || operacoes.length===0){ log('Nenhuma operação importada para comparar.'); return; }
+  // Placeholder: aqui você faria a extração do PDF e comparação lógica
+  // Implementação de extração de dados de PDF (OCR ou parser de texto) exige libs específicas que não entram via browser sem servidor.
+  // Por enquanto mostramos resumo simples:
+  log(`🔎 Comparação simulada: ${operacoes.length} operações prontas para conciliação.`);
+  renderTable();
+});
+
+/* ==========================
+   Inicialização (carrega local)
+   ========================== */
+(function init(){
+  try {
+    const s = localStorage.getItem('cdiControlState');
+    if(s){ operacoes = JSON.parse(s).operacoes || []; renderTable(); log('Dados locais carregados.'); }
+  } catch(e){ console.warn(e); }
+})();
 </script>
-
 </body>
 </html>
