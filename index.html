@@ -1,1014 +1,206 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com https://cdn.sheetjs.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://auth.firebase.com;"/>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <title>Controle de Ganhos CDI — Cloud Enabled</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <style>
-        :root{
-            --primary: #0A0A33;
-            --primary-light: #1A1A55;
-            --secondary: #C00000;
-            --secondary-light: #E00000;
-            --danger: #c62828;
-            --bg-start: #f4f8fb;
-            --bg-end: #eef6fb;
-            --card-bg: #ffffff;
-            --card-border: rgba(0,0,0,0.06);
-            --text-dark: #0f1724;
-            --muted: #6b7280;
-            --success: #2e7d32;
-            --gap: 12px;
-            --radius: 10px;
-            --shadow: 0 8px 20px rgba(16,24,40,0.06);
-        }
-        html,body{height:100%;margin:0;font-family:Inter, Roboto, system-ui, -apple-system, "Segoe UI", Arial;}
-        body{
-            background: linear-gradient(180deg,var(--bg-start),var(--bg-end));
-            color:var(--text-dark);
-            padding:calc(var(--gap) * 1.2);
-            -webkit-font-smoothing:antialiased;
-            font-size:14px;
-        }
-        #siteLogo{ display:block; max-width:140px; width:100%; height:auto; border-radius:6px; box-shadow:var(--shadow); margin:0 0 6px 0; }
-        #logo-wrapper{ margin-bottom:8px; }
-        #header-container{ display:flex; align-items:center; gap:10px; margin-bottom:8px; width: fit-content; }
-        #logo-placeholder{ font-size:1.4rem; color:var(--primary); } 
-        h1{ margin:0; color:var(--text-dark); font-size:1.25rem; font-weight:700; }
-        #left-header-content { display: flex; align-items: center; gap: 10px; }
-        #top-actions{ display:flex; align-items:center; gap:10px; padding:10px; background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--card-border); flex-wrap:wrap; }
-        #header-left{ display:flex; align-items:center; gap:10px; }
-        #header-right{ margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; background: var(--primary); color: white; border: 1px solid white; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); }
-        .btn.secondary { background: var(--secondary); color: white; border: 1px solid white; }
-        .btn.small { padding: 6px 10px; font-size: 13px; border-radius: 7px; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); background: var(--primary-light); border-color: white; }
-        .btn.secondary:hover { background: var(--secondary-light); border-color: white; box-shadow: 0 8px 20px rgba(192, 0, 0, 0.25); }
-        .btn:active { transform: none; filter: brightness(0.96); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); }
-        .btn.danger { background: var(--secondary); color: white; border: 1px solid white; box-shadow: 0 4px 10px rgba(198, 40, 40, 0.25); }
-        .btn.danger:hover { filter: brightness(0.85); border-color: white; }
-        #main-container{ display:flex; flex-direction:column; gap:14px; align-items:stretch; }
-        .card{ background:var(--card-bg); padding:14px; border-radius:10px; box-shadow:var(--shadow); border:1px solid var(--card-border); color:var(--text-dark); }
-        .input-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
-        .input-row label{ font-size:13px; color:var(--muted); font-weight:600; display:block; margin-bottom:6px; }
-        input[type="text"], input[type="date"]{ padding:8px 10px; border-radius:8px; border:1px solid rgba(15,23,36,0.06); background:#fff; color:var(--text-dark); min-width:120px; }
-        .totals{ display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:12px; }
-        .total-card{ padding:10px; border-radius:8px; border:1px solid rgba(15,23,36,0.04); background:linear-gradient(180deg,#fff,#fbfdff); }
-        .total-card h4{ margin:0; font-size:12px; color:var(--muted); }
-        .total-card p{ margin:6px 0 0 0; font-size:18px; font-weight:800; color:var(--text-dark); }
-        #totalCdiDisplay p { color: var(--success) !important; }
-        .table-wrap{ overflow:auto; border-radius:8px; }
-        table{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13px; color:var(--text-dark); }
-        thead th{ position:sticky; top:0; z-index:2; background: linear-gradient(180deg,var(--primary-light),var(--primary)); color:white; padding:10px 8px; text-align:left; font-weight:700; border-bottom:1px solid rgba(0,0,0,0.06); }
-        tbody td{ padding:8px 8px; border-bottom:1px solid rgba(0,0,0,0.04); text-align:right; }
-        tbody tr:nth-child(even){ background: rgba(0,0,0,0.02); }
-        td:first-child, th:first-child{ text-align:center; width:90px; }
-        .col-left{ text-align:left; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color: var(--primary); font-weight: 600; }
-        .action-cell{ text-align:center; }
-        .ganho, .perda { font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-block; min-width: 60px; text-align: center; }
-        .ganho { color: var(--success) !important; background: rgba(46, 125, 50, 0.1); border: 1px solid rgba(46, 125, 50, 0.2); }
-        .perda { color: var(--danger) !important; background: rgba(198, 40, 40, 0.1); border: 1px solid rgba(198, 40, 40, 0.2); }
-        b, strong { font-weight: 800; color: var(--primary); }
-        @media (max-width:980px){
-            #siteLogo{ max-width:120px; display:block; margin:0 auto 8px; }
-            #header-container{ margin-bottom:0; width: 100%; justify-content: center; }
-            #left-header-content { justify-content: center; }
-            .input-row{ flex-direction:column; align-items:stretch; }
-        }
-        @media print{
-            body{ background:white; padding:0; color:black; }
-            #input-panel .file-label, #input-panel .logo-label, #deleteAllBtn { display:none; }
-        }
-    </style>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<meta charset="utf-8">
+<title>Comparador TED + Tarifas (PDF ⇄ Excel)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<!-- XLSX -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background:#f5f5f5;
+}
+h2 { margin-top: 30px; }
+
+.box {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.15);
+}
+
+button {
+    padding: 10px 16px;
+    border: none;
+    background: #0077cc;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+button:hover { background: #005fa3; }
+
+.status {
+    margin-top: 8px;
+    font-weight: bold;
+    color: green;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+table th, table td {
+    padding: 8px;
+    border: 1px solid #ccc;
+}
+table th { background: #eee; }
+</style>
 
 </head>
 <body>
-    
-    <script>
-        // =========================================================================================
-        // CONFIGURAÇÃO DO FIREBASE (Projeto: controle-cdi)
-        // =========================================================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyD_vxw2VcSPO_tMXgrl7quZ85ODvpqQuR8",
-            authDomain: "controle-cdi.firebaseapp.com",
-            databaseURL: "https://controle-cdi-default-rtdb.firebaseio.com",
-            projectId: "controle-cdi",
-            storageBucket: "controle-cdi.firebasestorage.app",
-            messagingSenderId: "215359645646",
-            appId: "1:215359645646:web:cd61ae2f72e100d522ad9f"
-        };
 
-        // Inicializa Firebase e Referências
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        let globalDocRef = null; // Referência do documento do usuário logado
+<h1>Comparador TED + Tarifas (PDF ⇄ Excel)</h1>
 
-        // =========================================================================================
-        // FUNÇÕES DE AUTENTICAÇÃO (Login/Logout)
-        // =========================================================================================
-        function loginUser() {
-            const email = prompt("Digite seu e-mail:");
-            const password = prompt("Digite sua senha:");
+<div class="box">
+    <h2>1️⃣ Carregar PDF da Movimentação</h2>
+    <button onclick="document.getElementById('pdfInput').click()">Carregar PDF</button>
+    <input type="file" id="pdfInput" accept="application/pdf" style="display:none">
 
-            if (email && password) {
-                log('Tentando login...');
-                firebase.auth().signInWithEmailAndPassword(email, password)
-                    .then(() => log(`Login bem-sucedido para ${email}!`))
-                    .catch(error => {
-                        // Se falhar, tenta criar a conta
-                        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                            log('Usuário não encontrado. Tentando criar a conta...');
-                            firebase.auth().createUserWithEmailAndPassword(email, password)
-                                .then(() => log(`Conta criada e logada com sucesso para ${email}!`))
-                                .catch(err => log(`❌ Erro ao criar/logar: ${err.message}`));
-                        } else {
-                            log(`❌ Erro de login: ${error.message}`);
-                        }
-                    });
-            }
-        }
+    <div id="pdfStatus"></div>
+</div>
 
-        function logoutUser() {
-            firebase.auth().signOut()
-                .then(() => log('Logout bem-sucedido!'))
-                .catch(error => log(`❌ Erro ao sair: ${error.message}`));
-        }
+<div class="box">
+    <h2>2️⃣ Carregar Excel para Conciliação</h2>
+    <button onclick="document.getElementById('excelInput').click()">Carregar Excel</button>
+    <input type="file" id="excelInput" accept=".xlsx,.xls" style="display:none">
 
-        /* ---------- Funções utilitárias e lógica (Início do seu código original) ---------- */
-        
-        function log(message) { 
-            const el = document.getElementById('log');
-            if(el) el.textContent = message;
-            else console.log(message);
-        }
-                
-        function resetThemeToFixed() {
-            document.documentElement.style.setProperty('--primary', '#0A0A33');
-            document.documentElement.style.setProperty('--primary-light', '#1A1A55');
-            document.documentElement.style.setProperty('--secondary', '#C00000');
-            document.documentElement.style.setProperty('--secondary-light', '#E00000');
-                        
-            document.querySelectorAll('.btn:not(.secondary):not(.danger)').forEach(b => {
-                b.style.background = 'var(--primary)';
-                b.style.border = '1px solid white';
-                b.style.color = 'white';
-            });
-                        
-            document.querySelectorAll('.btn.secondary').forEach(b => {
-                b.style.background = 'var(--secondary)';
-                b.style.border = '1px solid white';
-                b.style.color = 'white';
-            });
-                        
-            document.querySelectorAll('.btn.danger').forEach(b=>{
-                b.style.background = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim();
-                b.style.color = '#ffffff';
-                b.style.border = '1px solid white';
-            });
-        }
-        
-        async function compressImageFile(file, quality = 0.7, maxSize = 600) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ratio = Math.min(1, maxSize / Math.max(img.width, img.height));
-                        canvas.width = Math.round(img.width * ratio);
-                        canvas.height = Math.round(img.height * ratio);
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        try {
-                            const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                            resolve(dataUrl);
-                        } catch (err) { reject(err); }
-                    };
-                    img.onerror = reject;
-                    img.src = reader.result;
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            const logoInput = document.getElementById('logoFile');
-            const siteLogo = document.getElementById('siteLogo');
-            const removeLogoBtn = document.getElementById('removeLogoBtn');
-            const addLogoBtn = document.getElementById('addLogoBtn');
+    <div id="excelStatus"></div>
+</div>
 
-            if (logoInput && siteLogo) {
-                logoInput.addEventListener('change', async (e) => {
-                    const file = e.target.files && e.target.files[0];
-                    if(!file) return;
-                                                    
-                    try {
-                        const compressed = await compressImageFile(file, 0.7, 600);
-                        siteLogo.src = compressed;
-                        siteLogo.style.display = 'block';
-                        localStorage.setItem('cdiLogo', compressed); 
-                        log('✅ Logo salvo localmente.');
-                    } catch (err) {
-                        console.error(err);
-                        log('❌ Erro ao processar o logo.');
-                    }
-                    resetThemeToFixed();
-                });
-                
-                if (addLogoBtn) { 
-                    addLogoBtn.addEventListener('click', () => { 
-                        logoInput.click(); 
-                    }); 
-                }
-            }
+<div class="box">
+    <h2>3️⃣ Resultado da Conciliação</h2>
+    <button onclick="comparar()">Comparar PDF ⇄ Excel</button>
 
-            if (removeLogoBtn && siteLogo) {
-                removeLogoBtn.addEventListener('click', ()=>{
-                    if(!confirm('Tem certeza que deseja remover logo salvo e restaurar padrão?')) return;
-                    localStorage.removeItem('cdiLogo');
-                    siteLogo.src = '';
-                    siteLogo.style.display = 'none';
-                    resetThemeToFixed();
-                    log('🗑️ Logo removido. Tema restaurado.');
+    <div id="resultado"></div>
+</div>
+
+<script>
+let pdfValores = [];
+let excelValores = [];
+
+/* -------------------- CARREGAR PDF -------------------- */
+document.getElementById("pdfInput").addEventListener("change", async (ev) => {
+    const file = ev.target.files[0];
+    if (!file) return;
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+
+    pdfValores = [];
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const text = await page.getTextContent();
+
+        const linhas = text.items.map(t => t.str);
+
+        linhas.forEach(l => {
+            const m = l.match(/(\d{2}\/\d{2}\/\d{4}).*?(-?\d+,\d{2})/);
+            if (m) {
+                pdfValores.push({
+                    data: m[1],
+                    valor: parseFloat(m[2].replace(".", "").replace(",", "."))
                 });
             }
-            
-            // CHAMADA DOS EVENTOS (segue pattern CSP-compliant)
-            setupEventListeners();
-            
-            // INICIA O ESTADO APÓS O DOM ESTAR PRONTO
-            loadState(); 
         });
+    }
 
-        
-        function cleanCurrency(v){
-            if(typeof v!=='string') v=String(v);
-            let cleanString = v.replace(/[R$\s]/g, '').trim();
+    document.getElementById("pdfStatus").innerHTML = `<div class="status">PDF carregado ✔ (${pdfValores.length} registros)</div>`;
+});
 
-            if (cleanString.includes('.') && cleanString.includes(',')) {
-                const lastComma = cleanString.lastIndexOf(',');
-                const lastDot = cleanString.lastIndexOf('.');
+/* -------------------- CARREGAR EXCEL -------------------- */
+document.getElementById("excelInput").addEventListener("change", async (ev) => {
+    const file = ev.target.files[0];
+    if (!file) return;
 
-                if (lastComma > lastDot) { 
-                    cleanString = cleanString.replace(/\./g, '');
-                    cleanString = cleanString.replace(/,/g, '.');
-                } else { 
-                    cleanString = cleanString.replace(/,/g, '');
-                }
-            } else {
-                cleanString = cleanString.replace(/\./g, '');
-                cleanString = cleanString.replace(/,/g, '.');
-            }
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(sheet);
 
-            const n=parseFloat(cleanString);
-            return isNaN(n)?0:n;
-        }
+    excelValores = [];
 
-        function parseNumber(v){ 
-            if(v===undefined||v===null||v==='') return 0;
-            if(typeof v==='string' && (v.includes(',') || v.includes('R$') || v.includes('.'))) return cleanCurrency(v);
-            const n=parseFloat(v);
-            return isNaN(n)?0:n;
-        }
+    json.forEach(l => {
+        const valor = parseFloat(String(l.Valor || l.VALOR || l.valor).replace(".", "").replace(",", "."));
 
-        function cleanCdiTaxa(v){
-            if(v===undefined||v===null||v==='') return 0;
-            if(typeof v!=='string') v=String(v);
-            v=v.replace(/[^0-9,.]/g,'');
-            let c=v.replace(',','.');
-            const parts=c.split('.');
-            if(parts.length>2) c=parts.slice(0,-1).join('')+'.'+parts.slice(-1);
-            const n=parseFloat(c);
-            return isNaN(n)?0:n;
-        }
-
-        function formatBRL(n){ return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2}); }
-        function formatPercent(n){ if(n===undefined||n===null||isNaN(n)) return ''; return n.toFixed(4).replace('.',','); }
-        function formatPU(n){ if(n===undefined||n===null||isNaN(n)||n===0) return '-'; return n.toLocaleString('pt-BR',{minimumFractionDigits:4,maximumFractionDigits:4}); }
-        function formatDataBR(s){ if(!s) return '-'; if(s.match(/^\d{4}-\d{2}-\d{2}$/)){ const [y,m,d]=s.split('-'); return `${d}/${m}/${y}`; } if(s.match(/^\d{2}\/\d{2}\/\d{4}$/)) return s; const d=new Date(s); if(!isNaN(d)) return d.toLocaleDateString('pt-BR'); return s; }
-        function normalizeDate(s){
-            if(!s) return '';
-            s=String(s).trim();
-            if(s.match(/^\d{4}-\d{2}-\d{2}$/)) return s;
-            if(s.match(/^\d{2}\/\d{2}\/\d{4}$/)){
-                const [d,m,y]=s.split('/');
-                return `${y}-${m}-${d}`;
-            }
-            const num=parseFloat(s);
-            if(!isNaN(num) && num>25569 && num<70000){ // Excel serial date
-                const base=new Date('1899-12-30');
-                const date=new Date(base.getTime() + num*24*60*60*1000);
-                if(!isNaN(date)){
-                    const y=date.getUTCFullYear();
-                    const m=date.getUTCMonth()+1;
-                    const d=date.getUTCDate();
-                    const pad=n=>n<10?'0'+n:n;
-                    return `${y}-${pad(m)}-${pad(d)}`;
-                }
-            }
-            try{ const d=new Date(s); if(!isNaN(d)) return d.toISOString().split('T')[0]; }catch(e){}
-            return '';
-        }
-
-        /* Persistência e estado */
-        let operacoes = [], totalCompromissada=0, totalRetorno=0, totalGanho=0;
-
-        // =========================================================================================
-        // FUNÇÃO saveState() - SALVA NO FIRESTORE
-        // =========================================================================================
-        function saveState() {
-            if (!globalDocRef) {
-                // se não estiver logado, também salvamos localmente
-                try{
-                    const stateToSaveLocal = {
-                        operacoes: operacoes,
-                        taxaCdiAnual: document.getElementById('taxaCdiAnual').value,
-                        diasAno: document.getElementById('diasAno').value,
-                        timestamp: new Date().toISOString()
-                    };
-                    localStorage.setItem('cdiControlState', JSON.stringify(stateToSaveLocal));
-                    log('✅ Dados salvos localmente (usuário não logado).');
-                }catch(e){
-                    console.error(e);
-                    log('❌ Erro ao salvar localmente.');
-                }
-                return;
-            }
-
-            log('⏳ Salvando dados na nuvem...');
-
-            const stateToSave = {
-                operacoes: operacoes,
-                taxaCdiAnual: document.getElementById('taxaCdiAnual').value,
-                diasAno: document.getElementById('diasAno').value,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            globalDocRef.set(stateToSave)
-                .then(() => {
-                    log('✅ Dados salvos com sucesso na nuvem!');
-                    calculateAndRender();
-                })
-                .catch(error => {
-                    console.error("Erro ao salvar no Firestore:", error);
-                    log(`❌ Erro ao salvar dados na nuvem: ${error.message}`);
-                });
-        }
-
-        // =========================================================================================
-        // FUNÇÃO loadState() - CARREGA VIA FIREBASE AUTH
-        // =========================================================================================
-        function loadState(){
-            resetThemeToFixed();
-
-            firebase.auth().onAuthStateChanged(user => {
-                const loginBtn = document.getElementById('loginBtn');
-                const logoutBtn = document.getElementById('logoutBtn');
-
-                if (user) {
-                    document.getElementById('currentUserDisplay').textContent = user.email;
-                    if(loginBtn) loginBtn.style.display = 'none';
-                    if(logoutBtn) logoutBtn.style.display = 'inline-flex';
-
-                    globalDocRef = db.collection('users').doc(user.uid);
-
-                    globalDocRef.get().then(doc => {
-                        if (doc.exists) {
-                            const st = doc.data();
-                            operacoes = st.operacoes || [];
-                            document.getElementById('taxaCdiAnual').value = st.taxaCdiAnual || '14,90';
-                            document.getElementById('diasAno').value = st.diasAno || '252';
-                            log(`💾 ${operacoes.length} operações carregadas da nuvem.`);
-                        } else {
-                            log('Aguardando... Não há dados salvos na nuvem. Crie ou importe.');
-                            saveState();
-                        }
-
-                        calculateAndRender();
-                    }).catch(e => {
-                        console.error("Erro ao carregar do Firestore:", e);
-                        log('❌ Erro ao carregar dados da nuvem. Verifique o console.');
-                    });
-
-                } else {
-                    globalDocRef = null;
-                    operacoes = [];
-                    if (document.getElementById('currentUserDisplay')) document.getElementById('currentUserDisplay').textContent = 'Desconectado';
-                    if (loginBtn) loginBtn.style.display = 'inline-flex';
-                    if (logoutBtn) logoutBtn.style.display = 'none';
-                    log('Por favor, faça o login para acessar os dados na nuvem.');
-
-                    try{
-                        const s = localStorage.getItem('cdiControlState');
-                        if(s){
-                            const st = JSON.parse(s);
-                            operacoes = st.operacoes || [];
-                            document.getElementById('taxaCdiAnual').value = st.taxaCdiAnual || '14,90';
-                            document.getElementById('diasAno').value = st.diasAno || '252';
-                            log(`⚠️ Carregando dados locais (${operacoes.length} operações). Faça login para salvar na nuvem.`);
-                        } else {
-                           document.getElementById('taxaCdiAnual').value = '14,90';
-                           document.getElementById('diasAno').value = '252';
-                           log('Aguardando... Não há dados salvos localmente.');
-                        }
-                    }catch(e){
-                        operacoes=[];
-                        log('❌ Erro ao carregar dados locais.');
-                    }
-
-                    calculateAndRender();
-                }
-            });
-
-            try {
-                const siteLogo = document.getElementById('siteLogo');
-                const savedLogo = localStorage.getItem('cdiLogo');
-                if (savedLogo && siteLogo) {
-                    siteLogo.src = savedLogo;
-                    siteLogo.style.display = 'block';
-                }
-            } catch (err) { console.warn(err); }
-        };
-
-        /* Renderização */
-        function updateTotalCards(){ document.querySelector('#totalCompromissadaDisplay p').textContent = formatBRL(totalCompromissada); document.querySelector('#totalRetornoDisplay p').textContent = formatBRL(totalRetorno); document.querySelector('#totalCdiDisplay p').textContent = formatBRL(totalGanho); }
-        function calculateAndRender(){
-            totalCompromissada=0; totalRetorno=0; totalGanho=0;
-            const cdiGlobal = cleanCdiTaxa(document.getElementById('taxaCdiAnual').value);
-            const diasAno = parseNumber(document.getElementById('diasAno').value) || 252;
-            const showIndividual = document.getElementById('showIndividualOps').checked;
-
-            const filterStartDateStr = document.getElementById('filterStartDate').value;
-            const filterEndDateStr = document.getElementById('filterEndDate').value;
-            const filterStart = filterStartDateStr ? normalizeDate(filterStartDateStr) : '';
-            const filterEnd = filterEndDateStr ? normalizeDate(filterEndDateStr) : '';
-
-            let ops = operacoes.filter(op=>{
-                const d = normalizeDate(op.data);
-                if(!d) return false;
-                if(filterStart && d < filterStart) return false;
-                if(filterEnd && d > filterEnd) return false;
-                return true;
-            });
-            ops.sort((a,b)=> normalizeDate(a.data).localeCompare(normalizeDate(b.data)));
-
-            document.getElementById('taxaCdiAnual').value = formatPercent(cdiGlobal);
-            document.getElementById('diasAno').value = diasAno;
-            let html = "<table><thead><tr><th>Data</th><th>Descrição/Resumo</th><th>Banco</th><th>Conta Cedente</th><th>Conta Cessionário</th><th>Compromissada</th><th>Retorno Bruto</th><th>PU IDA</th><th>PU VOLTA</th><th>Taxa CDI Anual (%)</th><th>Ganho (R$) Diário</th><th class='action-cell'>Ações</th></tr></thead><tbody>";
-            const resumo = {};
-            ops.forEach((op, index)=>{
-                const d = normalizeDate(op.data);
-                const comp = parseNumber(op.compromissada);
-                const ret = parseNumber(op.retorno);
-                const ganho = (ret - comp) * ( (typeof op.descricao === 'string' && op.descricao.toUpperCase().includes('RECOMPRA')) ? -1 : 1 );
-                const taxaUsada = (cleanCdiTaxa(op.cdiTaxa) > 0 && cleanCdiTaxa(op.cdiTaxa) !== 100) ? cleanCdiTaxa(op.cdiTaxa) : cdiGlobal;
-                totalCompromissada += comp; totalRetorno += ret; totalGanho += ganho;
-                if(!resumo[d]) resumo[d] = { data:d, totalCompromissada:0, totalRetorno:0, totalGanho:0, primeiraTaxa: taxaUsada };
-                resumo[d].totalCompromissada += comp; resumo[d].totalRetorno += ret; resumo[d].totalGanho += ganho;
-                if(showIndividual){
-                    const ganhoClass = ganho>0 ? 'ganho' : (ganho<0 ? 'perda' : '');
-                     html += `<tr class="individual-operation-row">
-                        <td class="col-data">${formatDataBR(op.data)}</td>
-                        <td class="col-left">${(op.descricao||'-')}</td>
-                        <td class="col-left">${(op.banco||'-')}</td>
-                        <td>${op.contaCedente||'-'}</td>
-                        <td>${op.contaCessionario||'-'}</td>
-                        <td>${formatBRL(comp)}</td>
-                        <td>${formatBRL(ret)}</td>
-                        <td>${formatPU(parseNumber(op.puIda))}</td>
-                        <td>${formatPU(parseNumber(op.puVolta))}</td>
-                        <td style="text-align:center;">${(Number(taxaUsada)||0).toFixed(4).replace('.',',')}</td>
-                        <td class="${ganhoClass}">${formatBRL(ganho)}</td>
-                        <td class="action-cell">
-                            <button class="btn small edit-op-btn" data-index="${index}">Alterar</button>
-                            <button class="btn small secondary delete-op-btn" data-index="${index}">Excluir</button>
-                        </td>
-                    </tr>`;
-                }
-            });
-            const datas = Object.keys(resumo).sort();
-            if(showIndividual && datas.length) html += `<tr><td colspan="12" style="text-align:left;background:rgba(0,0,0,0.02);font-weight:700;">RESUMO DIÁRIO (Consolidação por dia)</td></tr>`;
-            datas.forEach(k=>{
-                const r = resumo[k];
-                const ganhoClass = r.totalGanho>0 ? 'ganho' : (r.totalGanho<0 ? 'perda' : '');
-                 const taxaExib = (cleanCdiTaxa(r.primeiraTaxa) > 0 ? r.primeiraTaxa : cleanCdiTaxa(document.getElementById('taxaCdiAnual').value));
-                html += `<tr class="daily-summary-row">
-                    <td class="col-data">${formatDataBR(r.data)}</td>
-                    <td class="col-left">Soma Diária</td>
-                    <td class="col-left">-</td><td>-</td><td>-</td>
-                    <td>${formatBRL(r.totalCompromissada)}</td>
-                    <td>${formatBRL(r.totalRetorno)}</td>
-                    <td>-</td><td>-</td>
-                    <td style="text-align:center;">${(Number(taxaExib)||0).toFixed(4).replace('.',',')}</td>
-                    <td class="${ganhoClass}">${formatBRL(r.totalGanho)}</td>
-                    <td class="action-cell">-</td>
-                </tr>`;
-            });
-            if (operacoes.length === 0) html += `<tr><td colspan="12" style="text-align:center;">Nenhuma operação para exibir.</td></tr>`;
-            html += `</tbody></table>`;
-            document.getElementById('resultTable').innerHTML = html;
-            updateTotalCards();
-        }
-
-        /* Funções de manipulação */
-
-        // FUNÇÃO QUE ATRIBUI TODOS OS LISTENERS DE EVENTO (CSP-COMPLIANT)
-        function setupEventListeners(){
-            // Botões de autenticação
-            document.getElementById('loginBtn').addEventListener('click', loginUser);
-            document.getElementById('logoutBtn').addEventListener('click', logoutUser);
-
-            // Botões de Filtro e Ações Principais
-            document.getElementById('filterBtn').addEventListener('click', calculateAndRender);
-            document.getElementById('resetFilterBtn').addEventListener('click', ()=>{
-                document.getElementById('filterStartDate').value = '';
-                document.getElementById('filterEndDate').value = '';
-                calculateAndRender();
-            });
-            document.getElementById('deleteAllBtn').addEventListener('click', deleteAllOperations);
-
-            // Import / File input
-            document.getElementById('loadExcelBtn').addEventListener('click', importSelectedFile);
-            document.getElementById('excelFile').addEventListener('change', selectFile);
-
-            // Botões de Exportação e Impressão
-            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
-            document.getElementById('printBtn').addEventListener('click', () => window.print());
-
-            // Input de Configuração Global (onchange)
-            document.getElementById('taxaCdiAnual').addEventListener('change', calculateAndRender);
-            document.getElementById('diasAno').addEventListener('change', calculateAndRender);
-            document.getElementById('showIndividualOps').addEventListener('change', calculateAndRender); // onchange da checkbox
-
-            // Lançamento Manual
-            document.getElementById('addBtn').addEventListener('click', addManualOperation);
-            document.getElementById('cancelEditBtn').addEventListener('click', clearManualForm);
-
-            // Delegação de eventos para botões de Alterar/Excluir (CSP-compliant)
-            document.getElementById('resultTable').addEventListener('click', (e) => {
-                const target = e.target;
-                if (target.classList.contains('edit-op-btn')) {
-                    const index = parseInt(target.getAttribute('data-index'));
-                    editOperation(index);
-                } else if (target.classList.contains('delete-op-btn')) {
-                    const index = parseInt(target.getAttribute('data-index'));
-                    deleteOperation(index);
-                }
+        if (!isNaN(valor)) {
+            excelValores.push({
+                data: l.Data || l.DATA || l.data,
+                valor: valor
             });
         }
+    });
 
-        // Variável usada para controle do arquivo selecionado
-        let fileToImport = null;
+    document.getElementById("excelStatus").innerHTML = `<div class="status">Excel carregado ✔ (${excelValores.length} registros)</div>`;
+});
 
-        function selectFile(event) {
-            const files = event.target.files;
-            const importBtn = document.getElementById('loadExcelBtn');
+/* -------------------- COMPARAR -------------------- */
+function comparar() {
+    if (pdfValores.length === 0 || excelValores.length === 0) {
+        alert("Carregue o PDF e o Excel antes!");
+        return;
+    }
 
-            if (!files || files.length === 0) {
-                fileToImport = null;
-                importBtn.disabled = true;
-                log('Nenhum arquivo para importar.');
-                return;
-            }
+    const achados = [];
+    const naoAchados = [];
 
-            fileToImport = files[0];
-            importBtn.disabled = false;
-            log(`Arquivo selecionado: ${fileToImport.name}. Clique em Importar para processar.`);
-        }
+    pdfValores.forEach(p => {
+        const encontrado = excelValores.find(e =>
+            Math.abs(e.valor - p.valor) < 0.001
+        );
 
-        function importSelectedFile() {
-            if (!fileToImport) {
-                log('Nenhum arquivo para importar.');
-                return;
-            }
+        if (encontrado) achados.push({ pdf: p, excel: encontrado });
+        else naoAchados.push(p);
+    });
 
-            if (!globalDocRef) {
-                // permitir import mesmo sem login, salva local em saveState()
-                log('ℹ️ Importando sem conta: dados serão salvos localmente.');
-            }
+    let html = "<h3>Registros Encontrados</h3>";
+    html += gerarTabelaAchados(achados);
 
-            const fileName = fileToImport.name.toUpperCase();
+    html += "<h3>Não Encontrados no Excel</h3>";
+    html += gerarTabelaNaoAchados(naoAchados);
 
-            const callbackFinal = (novosDados) => {
-                fileToImport = null;
-                document.getElementById('excelFile').value = '';
-                document.getElementById('loadExcelBtn').disabled = true;
+    document.getElementById("resultado").innerHTML = html;
+}
 
-                if (novosDados.length > 0) {
-                    operacoes = operacoes.concat(novosDados);
-                    log(`✅ ${novosDados.length} novas operações importadas. Salvando...`);
-                    saveState();
-                    calculateAndRender();
-                } else {
-                    log('⚠️ Nenhum dado útil encontrado para importação. Verifique os cabeçalhos e a formatação numérica.');
-                }
-            };
+/* -------------------- TABELAS -------------------- */
+function gerarTabelaAchados(lista) {
+    if (lista.length === 0) return "<p>Nenhum encontrado.</p>";
 
-            if (fileName.endsWith('.XLSX') || fileName.endsWith('.XLS')) {
-                readExcelFile(fileToImport, callbackFinal);
-            } else if (fileName.endsWith('.CSV') || fileName.endsWith('.TXT')) {
-                readCSVFile(fileToImport, callbackFinal);
-            } else {
-                log(`Arquivo ${fileToImport.name} ignorado. Formato não suportado.`);
-                callbackFinal([]);
-            }
-        }
+    let t = "<table><tr><th>Data PDF</th><th>Valor PDF</th><th>Data Excel</th><th>Valor Excel</th></tr>";
 
-        function readExcelFile(file, callback) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, dateNF: 'yyyy-mm-dd' });
+    lista.forEach(l => {
+        t += `<tr>
+                <td>${l.pdf.data}</td>
+                <td>${l.pdf.valor.toFixed(2)}</td>
+                <td>${l.excel.data}</td>
+                <td>${l.excel.valor.toFixed(2)}</td>
+              </tr>`;
+    });
 
-                    if(!json || json.length < 2) return callback([]);
+    return t + "</table>";
+}
 
-                    const headers = json[0].map(h => String(h || '').trim());
-                    const dataRows = json.slice(1);
+function gerarTabelaNaoAchados(lista) {
+    if (lista.length === 0) return "<p>Todos encontrados no Excel ✔</p>";
 
-                    const dataProcessed = parseDataFromSheet(headers, dataRows);
-                    callback(dataProcessed);
-                } catch (err) {
-                    console.error(err);
-                    log('❌ Erro ao processar o arquivo Excel.');
-                    callback([]);
-                }
-            };
-            reader.onerror = (error) => {
-                log(`❌ Erro ao ler o arquivo Excel: ${error}`);
-                callback([]);
-            };
-            reader.readAsArrayBuffer(file);
-        }
+    let t = "<table><tr><th>Data</th><th>Valor</th></tr>";
 
-        function readCSVFile(file, callback) {
-            Papa.parse(file, {
-                header: false,
-                dynamicTyping: false,
-                skipEmptyLines: true,
-                encoding: "ISO-8859-1",
-                complete: function(results) {
-                    if (!results || !results.data || results.data.length < 2) return callback([]);
+    lista.forEach(l => {
+        t += `<tr><td>${l.data}</td><td>${l.valor.toFixed(2)}</td></tr>`;
+    });
 
-                    const headers = results.data[0].map(h => String(h || '').trim());
-                    const dataRows = results.data.slice(1);
+    return t + "</table>";
+}
+</script>
 
-                    const dataProcessed = parseDataFromSheet(headers, dataRows);
-                    callback(dataProcessed);
-                },
-                error: (error) => {
-                    log(`❌ Erro ao ler o arquivo CSV: ${error.message}`);
-                    callback([]);
-                }
-            });
-        }
-
-        function parseDataFromSheet(headers, dataRows) {
-            const map = {
-                data: ['DATA', 'DATA OPERAÇÃO', 'DATA OPERAÇÃO '],
-                descricao: ['DESCRIÇÃO', 'RESUMO', 'EVENTO', 'DESCRICAO'],
-                banco: ['BANCO', 'CONTRAPARTE'],
-                contaCedente: ['CONTA CEDENTE', 'CEDENTE'],
-                contaCessionario: ['CONTA CESSIONÁRIO', 'CESSIONARIO', 'CONTA CESSIONARIO'],
-                compromissada: ['VALOR COMPROMISSADA', 'COMPROMISSADA', 'VALOR COMPROMISSADO'],
-                retorno: ['VALOR RETORNO BRUTO', 'RETORNO BRUTO', 'RETORNO'],
-                cdiTaxa: ['TX. CDI %', 'TX. 252', 'TAXA', 'TAXA CDI'],
-                puIda: ['PU IDA', 'PU INICIAL'],
-                puVolta: ['PU VOLTA', 'PU FINAL']
-            };
-
-            const columnIndex = {};
-            Object.keys(map).forEach(key => {
-                const foundIndex = headers.findIndex(h => map[key].includes(String(h||'').toUpperCase()));
-                if (foundIndex !== -1) {
-                    columnIndex[key] = foundIndex;
-                }
-            });
-
-            if (columnIndex.data === undefined || columnIndex.compromissada === undefined || columnIndex.retorno === undefined || columnIndex.descricao === undefined || columnIndex.banco === undefined) {
-                log('⚠️ Cabeçalhos essenciais (Data, Compromissada, Retorno, Descrição, Banco) não encontrados. Verifique seu arquivo.');
-                return [];
-            }
-
-            const parsedData = [];
-            dataRows.forEach((row, index) => {
-                if (!row || row.length === 0) return;
-                if (row.every(cell => cell === undefined || cell === null || String(cell).trim() === '')) return;
-
-                const op = {
-                    data: normalizeDate(row[columnIndex.data]),
-                    descricao: row[columnIndex.descricao] || '',
-                    banco: row[columnIndex.banco] || '',
-                    contaCedente: row[columnIndex.contaCedente] || '',
-                    contaCessionario: row[columnIndex.contaCessionario] || '',
-                    compromissada: parseNumber(row[columnIndex.compromissada]),
-                    retorno: parseNumber(row[columnIndex.retorno]),
-                    cdiTaxa: cleanCdiTaxa(row[columnIndex.cdiTaxa]),
-                    puIda: parseNumber(row[columnIndex.puIda]),
-                    puVolta: parseNumber(row[columnIndex.puVolta]),
-                    source: `Importação ${new Date().toISOString()}`
-                };
-
-                if (op.data && op.compromissada > 0 && op.retorno >= 0) {
-                    parsedData.push(op);
-                } else if (index < 10) {
-                    console.warn(`Linha ${index + 2} ignorada: Dados incompletos. [Data: ${op.data}, Comp: ${op.compromissada}, Ret: ${op.retorno}]`, row);
-                }
-            });
-            return parsedData;
-        }
-
-        function addManualOperation() {
-            if (!globalDocRef) {
-                log('❌ Erro: Faça o login para adicionar um lançamento.');
-                return;
-            }
-
-            const data = document.getElementById('manualData').value;
-            const desc = document.getElementById('manualDesc').value;
-            const banco = document.getElementById('manualBanco').value;
-            const cedente = document.getElementById('manualCedente').value;
-            const cessionario = document.getElementById('manualCessionario').value;
-            const taxa = document.getElementById('manualCdiTaxa').value;
-            const comp = cleanCurrency(document.getElementById('manualCompromissada').value);
-            const ret = cleanCurrency(document.getElementById('manualRetorno').value);
-            const editIndex = parseInt(document.getElementById('editIndex').value);
-
-            if (!data || !desc || comp <= 0 || ret < 0) {
-                log('⚠️ Preencha Data, Descrição, Valor Compromissada e Valor Retorno.');
-                return;
-            }
-
-            const newOp = {
-                data: normalizeDate(data),
-                descricao: desc,
-                banco: banco,
-                contaCedente: cedente,
-                contaCessionario: cessionario,
-                compromissada: comp,
-                retorno: ret,
-                cdiTaxa: cleanCdiTaxa(taxa),
-                puIda: 0,
-                puVolta: 0,
-                source: "Manual"
-            };
-
-            if (editIndex > -1) {
-                operacoes[editIndex] = newOp;
-                log('✅ Lançamento alterado com sucesso.');
-            } else {
-                operacoes.push(newOp);
-                log('✅ Novo lançamento adicionado.');
-            }
-            saveState();
-            clearManualForm();
-        }
-
-        function clearManualForm() {
-            document.getElementById('manualData').value = '';
-            document.getElementById('manualDesc').value = '';
-            document.getElementById('manualBanco').value = '';
-            document.getElementById('manualCedente').value = '';
-            document.getElementById('manualCessionario').value = '';
-            document.getElementById('manualCdiTaxa').value = '';
-            document.getElementById('manualCompromissada').value = '';
-            document.getElementById('manualRetorno').value = '';
-            document.getElementById('editIndex').value = '-1';
-            document.getElementById('addBtn').textContent = 'Adicionar Lançamento';
-            document.getElementById('cancelEditBtn').style.display = 'none';
-        }
-
-        function editOperation(index) {
-            const op = operacoes[index];
-            if (!op) return;
-
-            const formattedComp = op.compromissada.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-            const formattedRet = op.retorno.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-            const formattedTaxa = op.cdiTaxa > 0 ? op.cdiTaxa.toLocaleString('pt-BR', {minimumFractionDigits: 4}) : '';
-            
-            document.getElementById('manualData').value = op.data;
-            document.getElementById('manualDesc').value = op.descricao;
-            document.getElementById('manualBanco').value = op.banco;
-            document.getElementById('manualCedente').value = op.contaCedente;
-            document.getElementById('manualCessionario').value = op.contaCessionario;
-            document.getElementById('manualCdiTaxa').value = formattedTaxa;
-            document.getElementById('manualCompromissada').value = formattedComp;
-            document.getElementById('manualRetorno').value = formattedRet;
-            document.getElementById('editIndex').value = index;
-
-            document.getElementById('addBtn').textContent = 'Salvar Alteração';
-            document.getElementById('cancelEditBtn').style.display = 'inline-flex';
-            log(`Editando operação na linha ${index + 1}.`);
-            document.getElementById('input-panel').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function deleteOperation(index) {
-            if (!globalDocRef) {
-                log('❌ Erro: Faça o login para excluir um lançamento.');
-                return;
-            }
-            if (confirm('Tem certeza que deseja excluir esta operação?')) {
-                operacoes.splice(index, 1);
-                saveState();
-                log('🗑️ Operação excluída.');
-                calculateAndRender();
-            }
-        }
-        
-        function deleteAllOperations() {
-            if (!globalDocRef) {
-                log('❌ Erro: Faça o login para excluir todos os lançamentos.');
-                return;
-            }
-            if (confirm('ATENÇÃO: Você tem certeza que deseja excluir TODAS as operações salvas? Esta ação é irreversível.')) {
-                operacoes = [];
-                saveState();
-                log('🗑️ TODAS as operações foram excluídas.');
-                calculateAndRender();
-            }
-        }
-
-        function exportToExcel() {
-            if (operacoes.length === 0) {
-                log('Nenhuma operação para exportar.');
-                return;
-            }
-
-            const headerMap = {
-                data: 'Data', descricao: 'Descrição', banco: 'Banco', contaCedente: 'Conta Cedente',
-                contaCessionario: 'Conta Cessionário', compromissada: 'Valor Compromissada',
-                retorno: 'Valor Retorno Bruto', cdiTaxa: 'Taxa CDI Anual (%)', puIda: 'PU IDA', puVolta: 'PU VOLTA'
-            };
-
-            const exportData = operacoes.map(op => {
-                const row = {};
-                row[headerMap.data] = formatDataBR(op.data);
-                row[headerMap.descricao] = op.descricao;
-                row[headerMap.banco] = op.banco;
-                row[headerMap.contaCedente] = op.contaCedente;
-                row[headerMap.contaCessionario] = op.contaCessionario;
-                row[headerMap.compromissada] = op.compromissada.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                row[headerMap.retorno] = op.retorno.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                row[headerMap.cdiTaxa] = op.cdiTaxa.toFixed(4).replace('.', ',');
-                row[headerMap.puIda] = op.puIda.toFixed(4).replace('.', ',');
-                row[headerMap.puVolta] = op.puVolta.toFixed(4).replace('.', ',');
-                return row;
-            });
-
-            const ws = XLSX.utils.json_to_sheet(exportData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Dados CDI");
-            XLSX.writeFile(wb, "Controle_CDI_Export_" + new Date().toLocaleDateString('pt-BR').replace(/\//g, '-') + ".xlsx");
-            log('✅ Dados exportados para Excel.');
-        }
-
-    </script>
-
-    <div id="logo-wrapper">
-        <img id="siteLogo" alt="Logo do site">
-    </div>
-    <div id="header-container">
-        <div id="left-header-content">
-            <div id="logo-placeholder">📈</div>
-            <h1>Controle de Ganhos CDI</h1>
-        </div>
-    </div>
-    <div id="top-actions" class="card" role="region" aria-label="Ações principais">
-        <div id="header-left">
-            <div style="font-weight:700;">Resumo Diário</div>
-            <div style="font-size:12px;color:var(--muted);">
-                <span id="currentUserDisplay" style="font-weight: 600;">Desconectado</span> | Filtros, importação e ações rápidas
-            </div>
-        </div>
-        <div id="header-right">
-            <button id="loginBtn" class="btn small">Login</button>
-            <button id="logoutBtn" class="btn small secondary" style="display:none;">Sair</button>
-
-            <button id="printBtn" class="btn small" title="Imprimir">Imprimir</button>
-
-            <button id="exportBtn" class="btn small secondary" title="Exportar">Exportar</button>
-
-            <label class="file-label" for="excelFile" title="Selecionar arquivos">
-                <input type="file" id="excelFile" accept=".xlsx,.xls,.csv,.txt" multiple style="display:none;">
-                <span class="btn small" onclick="document.getElementById('excelFile').click();">Procurar</span>
-            </label>
-
-            <button id="loadExcelBtn" class="btn small secondary" title="Importar arquivos" disabled>Importar</button>
-
-            <label class="logo-label" for="logoFile" title="Carregar logo">
-                <input type="file" id="logoFile" accept="image/*" style="display:none;">
-                <span class="btn small" onclick="document.getElementById('logoFile').click();">Procurar</span>
-            </label>
-
-            <button id="addLogoBtn" class="btn small secondary" title="Carregar Logo">Carregar Logo</button>
-
-            <button id="removeLogoBtn" class="btn small" title="Remover">Remover</button>
-
-            <button id="deleteAllBtn" class="btn small secondary danger" title="Excluir tudo">🗑️</button>
-        </div>
-    </div>
-    <div id="main-container">
-        <div id="results-panel" class="card">
-            <h2 style="margin:0 0 8px 0;">📊 Resumo Diário</h2>
-            <div class="card filter-card" style="margin-bottom:10px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                    <div style="font-weight:600;color:var(--muted);">Filtros</div>
-                    <div style="font-size:12px;color:var(--muted);">Mostrar detalhe por operação</div>
-                </div>
-                <div class="input-row" style="margin-top:8px;">
-                    <div>
-                        <label for="filterStartDate">Data de Início</label>
-                        <input type="date" id="filterStartDate">
-                    </div>
-                    <div>
-                        <label for="filterEndDate">Data de Fim</label>
-                        <input type="date" id="filterEndDate">
-                    </div>
-                    <div style="display:flex;align-items:flex-end;gap:8px;">
-                        <button id="filterBtn" class="btn small">Filtrar</button>
-                        <button id="resetFilterBtn" class="btn small secondary">Limpar</button>
-                    </div>
-                </div>
-                <div style="margin-top:8px;">
-                    <label style="font-weight:600;color:var(--muted)">
-                        <input type="checkbox" id="showIndividualOps" checked> Mostrar Detalhe por Operação
-                    </label>
-                </div>
-            </div>
-            <div class="totals">
-                <div class="total-card" id="totalCompromissadaDisplay"><h4>Compromissada TOTAL</h4><p>R$ 0,00</p></div>
-                <div class="total-card" id="totalRetornoDisplay"><h4>Retorno Bruto TOTAL</h4><p>R$ 0,00</p></div>
-                <div class="total-card" id="totalCdiDisplay"><h4>Ganho (R$) TOTAL</h4><p>R$ 0,00</p></div>
-            </div>
-            <div class="table-wrap">
-                <div id="resultTable"></div>
-            </div>
-            <p style="font-size:12px;color:var(--muted);margin-top:10px;">
-                ⚠️ O <strong>Ganho (R$) Diário</strong> é calculado pelo Valor Retorno Bruto - Valor Compromissada, com inversão para RECOMPRA.
-            </p>
-        </div>
-        <div id="input-panel" class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <h3 style="margin:0 0 8px 0;">⭐ Configuração Global</h3>
-            </div>
-            <div class="input-row">
-                <div>
-                    <label for="taxaCdiAnual">Taxa CDI Anual Global (%)</label>
-                    <input type="text" id="taxaCdiAnual" placeholder="14,90" value="14,90">
-                </div>
-                <div>
-                    <label for="diasAno">Dias no Ano</label>
-                    <input type="text" id="diasAno" placeholder="252" value="252">
-                </div>
-            </div>
-            <hr style="border:none;border-top:1px solid rgba(15,23,36,0.04);margin:12px 0;">
-            <div>
-                <h3 style="margin:0 0 8px 0;">📂 Importação</h3>
-                <p style="font-size:12px;color:var(--muted);margin:0 0 10px 0;">
-                    *O sistema tenta reconhecer os cabeçalhos, priorizando 'TX. 252' para a taxa CDI.
-                </p>
-            </div>
-            <hr style="border:none;border-top:1px solid rgba(15,23,36,0.04);margin:12px 0;">
-            <div>
-                <h3 style="margin:0 0 8px 0;">➕ Lançamento Manual</h3>
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                    <input type="hidden" id="editIndex" value="-1">
-                    <div><label for="manualData">Data do Lançamento</label><br><input type="date" id="manualData" required></div>
-                    <div><label for="manualDesc">Descrição</label><br><input type="text" id="manualDesc" placeholder="Ex: REVENDA - Aplicação Mês"></div>
-                    <div><label for="manualBanco">Banco / Contraparte</label><br><input type="text" id="manualBanco" placeholder="Ex: BTG Pactual"></div>
-                    <div style="display:flex;gap:8px;">
-                        <div style="flex:1;"><label for="manualCedente">Conta Cedente</label><br><input type="text" id="manualCedente" placeholder="8300005"></div>
-                        <div style="flex:1;"><label for="manualCessionario">Conta Cessionário</label><br><input type="text" id="manualCessionario" placeholder="12000005"></div>
-                    </div>
-                    <div><label for="manualCdiTaxa">Taxa CDI Anual Específica (%)</label><br><input type="text" id="manualCdiTaxa" placeholder="14,90 (Deixar vazio para usar Global)"></div>
-                    <div style="display:flex;gap:8px;">
-                        <div style="flex:1;"><label for="manualCompromissada">Valor Compromissada</label><br><input type="text" id="manualCompromissada" placeholder="10.000,00"></div>
-                        <div style="flex:1;"><label for="manualRetorno">Valor Retorno (Bruto)</label><br><input type="text" id="manualRetorno" placeholder="10.050,25"></div>
-                    </div>
-                    <div style="display:flex;gap:8px;">
-                        <button id="addBtn" class="btn" style="flex:1;">Adicionar Lançamento</button>
-                        <button id="cancelEditBtn" class="btn secondary" style="flex:1;display:none;">Cancelar Edição</button>
-                    </div>
-                </div>
-            </div>
-            <pre id="log" style="height:84px;overflow:auto;margin-top:12px;color:var(--muted);">Aguardando...</pre>
-        </div>
-    </div>
 </body>
 </html>
