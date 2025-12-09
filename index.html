@@ -8,32 +8,36 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-    
+
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        header { margin-bottom: 20px; }
-        h1 { color: #333; }
-        .controls, .manual-entry, .filter-controls { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
-        .input-group { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-        .input-item { display: flex; flex-direction: column; min-width: 150px; }
-        .input-item label { font-weight: bold; margin-bottom: 5px; }
-        .input-item input, .input-item select { padding: 8px; border: 1px solid #ddd; border-radius: 3px; }
-        .btn { padding: 8px 15px; border: 1px solid #333; background-color: #f0f0f0; cursor: pointer; border-radius: 3px; }
-        .btn.secondary { background-color: #f0ad4e; border-color: #eea236; }
+        body { font-family: Arial, sans-serif; margin: 20px; font-size: 14px; }
+        header { margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        h1 { margin: 0; font-size: 1.5em; }
+        h2 { font-size: 1.2em; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 20px; }
+        .controls, .manual-entry, .filter-controls { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; background: #f9f9f9; }
+        .input-group { display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; }
+        .input-item { display: flex; flex-direction: column; min-width: 120px; }
+        .input-item label { font-weight: bold; margin-bottom: 3px; font-size: 0.9em; }
+        .input-item input, .input-item select { padding: 6px; border: 1px solid #ccc; border-radius: 3px; }
+        .btn { padding: 8px 12px; border: 1px solid #aaa; background-color: #eee; cursor: pointer; border-radius: 3px; transition: background-color 0.2s; }
+        .btn:hover { background-color: #ddd; }
+        .btn.secondary { background-color: #f0ad4e; border-color: #eea236; color: white; }
         .btn.danger { background-color: #d9534f; border-color: #d43f3a; color: white; }
-        .card-container { display: flex; gap: 20px; margin-bottom: 20px; }
-        .card { border: 1px solid #ddd; padding: 10px; flex-grow: 1; text-align: center; }
-        #log { border: 1px solid #ffcc00; background: #fffacd; padding: 10px; margin-bottom: 20px; }
+        .card-container { display: flex; gap: 20px; margin-bottom: 15px; }
+        .card { border: 1px solid #ddd; padding: 10px; flex-grow: 1; text-align: center; background: white; }
+        .card h3 { margin: 0 0 5px 0; font-size: 1em; color: #555; }
+        .card p { font-size: 1.5em; font-weight: bold; margin: 0; }
+        #log { border: 1px solid #ffcc00; background: #fffacd; padding: 10px; margin-bottom: 15px; color: #8a6d3b; }
         
         /* Tabela */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
         table th, table td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-        table th { background-color: #333; color: white; }
+        table th { background-color: #333; color: white; font-size: 0.85em; }
         .col-left { text-align: left; }
         .ganho { color: green; font-weight: bold; }
         .perda { color: red; font-weight: bold; }
-        .action-cell { text-align: center; }
-        .action-cell .btn { margin: 2px; }
+        .action-cell { text-align: center; white-space: nowrap; }
+        .action-cell .btn { margin: 2px; padding: 5px 8px; font-size: 0.8em; }
         
         #logoFile, #excelFile { display: none; }
     </style>
@@ -43,8 +47,8 @@
 
     <header>
         <h1>Controle de Ganhos CDI</h1>
-        <img id="siteLogo" alt="Logo" style="height: 40px; display: none;">
-        <div>
+        <img id="siteLogo" alt="Logo" style="height: 40px; display: none; margin-top: 10px;">
+        <div style="margin-top: 10px;">
             <input type="file" id="logoFile" accept="image/*">
             <button id="addLogoBtn" class="btn">Adicionar Logo</button>
             <button id="removeLogoBtn" class="btn danger">Remover Logo</button>
@@ -67,7 +71,7 @@
     </div>
 
     <div id="log">Aguardando carregamento de dados do Firestore...</div>
-    
+
     <div class="controls">
         <h2>Configurações Globais</h2>
         <div class="input-group">
@@ -91,35 +95,35 @@
                 <label for="manualData">Data (AAAA-MM-DD)</label>
                 <input type="date" id="manualData">
             </div>
-            <div class="input-item">
-                <label for="manualDesc">Descrição / Resumo</label>
-                <input type="text" id="manualDesc" placeholder="Operação">
+            <div class="input-item" style="flex-grow: 2;">
+                <label for="manualDesc">Descrição / Resumo da Operação</label>
+                <input type="text" id="manualDesc" placeholder="Ex: Operação Tesouro Direto">
             </div>
             <div class="input-item">
                 <label for="manualBanco">Banco</label>
-                <input type="text" id="manualBanco" placeholder="Banco S.A.">
+                <input type="text" id="manualBanco" placeholder="Ex: BANCO DO BRASIL S.A.">
             </div>
             <div class="input-item">
                 <label for="manualCedente">Conta Cedente</label>
-                <input type="text" id="manualCedente">
+                <input type="text" id="manualCedente" placeholder="000.000">
             </div>
             <div class="input-item">
                 <label for="manualCessionario">Conta Cessionário</label>
-                <input type="text" id="manualCessionario">
+                <input type="text" id="manualCessionario" placeholder="000.000">
             </div>
         </div>
         <div class="input-group">
             <div class="input-item">
                 <label for="manualCompromissada">Valor Compromissada (R$)</label>
-                <input type="text" id="manualCompromissada" placeholder="1000,00">
+                <input type="text" id="manualCompromissada" placeholder="1.000.000,00">
             </div>
             <div class="input-item">
                 <label for="manualRetorno">Valor Retorno Bruto (R$)</label>
-                <input type="text" id="manualRetorno" placeholder="1000,41">
+                <input type="text" id="manualRetorno" placeholder="1.000.413,50">
             </div>
-             <div class="input-item">
+             <div class="input-item" style="min-width: 150px;">
                 <label for="manualCdiTaxa">Taxa CDI (%) (Opcional)</label>
-                <input type="text" id="manualCdiTaxa" placeholder="14,90 (se for diferente)">
+                <input type="text" id="manualCdiTaxa" placeholder="14,90 (se for diferente do padrão)">
             </div>
         </div>
         <button id="addBtn" class="btn">Adicionar Lançamento</button>
@@ -137,12 +141,12 @@
                 <label for="filterEndDate">Data Final</label>
                 <input type="date" id="filterEndDate">
             </div>
-             <div class="input-item" style="flex-grow: 0;">
+            <div class="input-item" style="flex-grow: 0;">
                 <label for="showIndividualOps">Mostrar Detalhe?</label>
-                <input type="checkbox" id="showIndividualOps" style="width: 20px; height: 20px; margin-top: 5px;">
+                <input type="checkbox" id="showIndividualOps" style="width: 15px; height: 15px; margin-top: 5px;">
             </div>
         </div>
-        
+
         <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
             <button id="filterBtn" class="btn">Aplicar Filtros</button>
             <button id="resetFilterBtn" class="btn secondary">Limpar Filtros</button>
@@ -154,7 +158,7 @@
             <button id="deleteAllBtn" class="btn danger">Excluir TODAS as Operações</button>
         </div>
     </div>
-    
+
     <div class="table-section">
         <h2>Resultados das Operações</h2>
         <div id="resultTable">
@@ -179,7 +183,8 @@
         firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
-    const DOC_REF = db.collection("configuracao_global").doc("dados_cdi");
+    // DEFINIÇÃO DO CAMINHO CORRETO NO FIREBASE (Coleção: configuracao_global, Documento: dados_cdi)
+    const DOC_REF = db.collection("configuracao_global").doc("dados_cdi"); 
     let operacoes = [], totalCompromissada = 0, totalRetorno = 0, totalGanho = 0;
 
     /* ---------- Funções utilitárias e lógica ---------- */
@@ -236,7 +241,7 @@
         const num = parseFloat(s);
         if (!isNaN(num) && num > 25569 && num < 70000) { // Excel serial date
             const base = new Date('1899-12-30');
-            const date = new Date(base.getTime() + num * 24 * 60 * 60 * 1000);
+            const date = new Date(base.getTime() + (num - 1) * 24 * 60 * 60 * 1000); // Subtrai 1 para correção do Excel
             if (!isNaN(date)) {
                 const y = date.getUTCFullYear();
                 const m = date.getUTCMonth() + 1;
@@ -276,9 +281,7 @@
     }
 
     // Função de reset de tema (Básica)
-    function resetThemeToFixed() {
-        // Nada a fazer no modo básico
-    }
+    function resetThemeToFixed() { }
 
     /* --- Persistência e Estado (FIREBASE FIRESTORE) --- */
     function saveState() {
@@ -328,7 +331,10 @@
                     document.getElementById('diasAno').value = st.diasAno || '252';
                     log(`💾 ${operacoes.length} operações carregadas do Firestore.`);
                 } else {
-                    log('Aguardando... Não há dados salvos no Firestore.');
+                    // Carrega valores padrão se o documento não existir
+                    document.getElementById('taxaCdiAnual').value = '14,90';
+                    document.getElementById('diasAno').value = '252';
+                    log('Aguardando... Não há dados salvos no Firestore. Usando valores padrão.');
                 }
             })
             .catch(e => {
@@ -399,7 +405,7 @@
             if (showIndividual) {
                 const ganhoClass = ganho > 0 ? 'ganho' : (ganho < 0 ? 'perda' : '');
                 html += `<tr class="individual-operation-row" data-original-index="${operacoes.indexOf(op)}">
-                    <td class="col-data">${formatDataBR(op.data)}</td>
+                    <td>${formatDataBR(op.data)}</td>
                     <td class="col-left" title="${op.descricao || '-'}">${(op.descricao || '-')}</td>
                     <td>${(op.banco || '-')}</td>
                     <td>${op.contaCedente || '-'}</td>
@@ -412,7 +418,7 @@
                     <td class="${ganhoClass}">${formatBRL(ganho)}</td>
                     <td class="action-cell">
                         <button class="btn small edit-btn" data-action="edit" data-index="${operacoes.indexOf(op)}">Alterar</button>
-                        <button class="btn small secondary delete-btn" data-action="delete" data-index="${operacoes.indexOf(op)}">Excluir</button>
+                        <button class="btn small danger delete-btn" data-action="delete" data-index="${operacoes.indexOf(op)}">Excluir</button>
                     </td>
                 </tr>`;
             }
@@ -426,7 +432,7 @@
             const taxa = (Number(r.primeiraTaxa) || 0).toFixed(4).replace('.', ',');
 
             const rowContent = `
-                <td class="col-data">${formatDataBR(d)}</td>
+                <td>${formatDataBR(d)}</td>
                 <td class="col-left">RESUMO DIÁRIO</td>
                 <td colspan="3">-</td>
                 <td>${formatBRL(r.totalCompromissada)}</td>
@@ -645,7 +651,7 @@
         });
     }
 
-    // Lógica da Importação de Arquivos (Completa)
+    // Lógica da Importação de Arquivos (Reforçada)
     document.getElementById('loadExcelBtn').addEventListener('click', () => {
         const fileInput = document.getElementById('excelFile');
         const files = fileInput.files;
@@ -661,10 +667,12 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
+                // Permite que o SheetsJS tente inferir o formato, incluindo datas
+                const workbook = XLSX.read(data, { type: 'array', cellDates: false }); 
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
-                // Lendo como array para melhor manipulação de cabeçalhos
+                
+                // Lendo como array para melhor manipulação de cabeçalhos e tipos de dados
                 const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                 const headers = json[0] ? json[0].map(h => String(h).trim().toLowerCase().replace(/[^a-z0-9]/g, '')) : [];
@@ -686,7 +694,7 @@
                         else if (header.includes('cessionario')) tempOp.contaCessionario = val;
                     });
                     
-                    // Normaliza a data
+                    // Normaliza a data (agora com lógica de Excel Serial Date reforçada)
                     if(tempOp.data) tempOp.data = normalizeDate(tempOp.data);
                     
                     return tempOp;
