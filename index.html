@@ -8,423 +8,163 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    
     <style>
-        :root {
-            --primary: #0A0A33;
-            --primary-light: #1A1A55;
-            --secondary: #C00000;
-            --secondary-light: #E00000;
-            --background: #f4f4f9;
-            --card-bg: #ffffff;
-            --text-color: #333;
-            --ganho-color: #008000;
-            --perda-color: #CC0000;
-            --border-color: #ddd;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: var(--background);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        header {
-            background: var(--primary);
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 1.8em;
-            display: flex;
-            align-items: center;
-        }
-
-        #siteLogo {
-            height: 40px;
-            max-width: 150px;
-            margin-right: 15px;
-            display: none;
-        }
-
-        main {
-            padding: 20px;
-            flex-grow: 1;
-            max-width: 1400px;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        .card-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            border-left: 5px solid var(--primary);
-        }
-
-        .card.total-compromissada { border-left-color: var(--primary); }
-        .card.total-retorno { border-left-color: #007BFF; }
-        .card.total-cdi { border-left-color: var(--ganho-color); }
-
-        .card h3 {
-            margin-top: 0;
-            color: var(--text-color);
-            font-size: 1em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .card p {
-            font-size: 2em;
-            font-weight: 700;
-            margin: 5px 0 0;
-            color: var(--primary);
-        }
-
-        .card.total-cdi p { color: var(--ganho-color); }
-
-        /* Estilos de Formulário e Controles */
-        .controls, .manual-entry, .filter-controls {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-            border-top: 3px solid var(--secondary);
-        }
-
-        .controls h2, .manual-entry h2, .filter-controls h2 {
-            color: var(--primary);
-            margin-top: 0;
-            font-size: 1.5em;
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-
-        .input-item {
-            display: flex;
-            flex-direction: column;
-            min-width: 150px;
-            flex-grow: 1;
-        }
-
-        .input-item label {
-            font-size: 0.9em;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: var(--text-color);
-        }
-
-        .input-item input, .input-item select {
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 1em;
-            box-sizing: border-box;
-            background: #fafafa;
-        }
-
-        .btn-container {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.2s, opacity 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            min-width: 120px;
-            justify-content: center;
-        }
-
-        /* Botões Primários */
-        .btn:not(.secondary):not(.danger) {
-            background: var(--primary);
-            color: white;
-            border: 1px solid white;
-        }
-        .btn:not(.secondary):not(.danger):hover { background: var(--primary-light); }
-
-        /* Botões Secundários/Perigo */
-        .btn.secondary, .btn.danger {
-            background: var(--secondary);
-            color: white;
-            border: 1px solid white;
-        }
-        .btn.secondary:hover, .btn.danger:hover { background: var(--secondary-light); }
-
-        .btn.small {
-            padding: 5px 10px;
-            font-size: 0.8em;
-            min-width: 80px;
-        }
-
-        /* Área de Log */
-        #log {
-            margin-top: 10px;
-            padding: 10px;
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-            border-radius: 4px;
-            font-size: 0.9em;
-            white-space: pre-wrap;
-        }
-
-        /* Estilos da Tabela */
-        .table-section {
-            margin-top: 30px;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--card-bg);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        table th, table td {
-            padding: 12px 15px;
-            text-align: right;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        table th {
-            background: var(--primary);
-            color: white;
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        table tbody tr:hover { background: #f0f0f0; }
-
-        .col-data { text-align: center; white-space: nowrap; }
-        .col-left { text-align: left; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        .ganho { color: var(--ganho-color); font-weight: 700; }
-        .perda { color: var(--perda-color); font-weight: 700; }
-
-        .action-cell { text-align: center; white-space: nowrap; }
-        .action-cell .btn { margin: 2px; }
-
-        .individual-operation-row td {
-            background: rgba(255, 255, 255, 0.9);
-            font-size: 0.9em;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        header { margin-bottom: 20px; }
+        h1 { color: #333; }
+        .controls, .manual-entry, .filter-controls { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .input-item { display: flex; flex-direction: column; min-width: 150px; }
+        .input-item label { font-weight: bold; margin-bottom: 5px; }
+        .input-item input, .input-item select { padding: 8px; border: 1px solid #ddd; border-radius: 3px; }
+        .btn { padding: 8px 15px; border: 1px solid #333; background-color: #f0f0f0; cursor: pointer; border-radius: 3px; }
+        .btn.secondary { background-color: #f0ad4e; border-color: #eea236; }
+        .btn.danger { background-color: #d9534f; border-color: #d43f3a; color: white; }
+        .card-container { display: flex; gap: 20px; margin-bottom: 20px; }
+        .card { border: 1px solid #ddd; padding: 10px; flex-grow: 1; text-align: center; }
+        #log { border: 1px solid #ffcc00; background: #fffacd; padding: 10px; margin-bottom: 20px; }
         
-        /* Ocultar input file real */
-        #logoFile, #excelFile {
-            display: none;
-        }
-
-        .logo-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Estilos de Impressão */
-        @media print {
-            header, .controls, .manual-entry, #log, .action-cell, .btn-container {
-                display: none;
-            }
-            body { background: white; color: black; }
-            main { padding: 0; }
-            .card-container, table { box-shadow: none; }
-            .card p { color: var(--text-color); }
-            .card.total-cdi p { color: var(--ganho-color); }
-            table th { background: #eee; color: black; border-color: #999; }
-            table td { border-color: #999; }
-        }
+        /* Tabela */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        table th, table td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+        table th { background-color: #333; color: white; }
+        .col-left { text-align: left; }
+        .ganho { color: green; font-weight: bold; }
+        .perda { color: red; font-weight: bold; }
+        .action-cell { text-align: center; }
+        .action-cell .btn { margin: 2px; }
+        
+        #logoFile, #excelFile { display: none; }
     </style>
 </head>
 
 <body onload="loadState()">
 
     <header>
-        <h1>
-            <img id="siteLogo" alt="Logo" style="display: none;">
-            Controle de Ganhos CDI
-        </h1>
-        <div class="logo-controls">
+        <h1>Controle de Ganhos CDI</h1>
+        <img id="siteLogo" alt="Logo" style="height: 40px; display: none;">
+        <div>
             <input type="file" id="logoFile" accept="image/*">
-            <button id="addLogoBtn" class="btn small">⚙️ Adicionar Logo</button>
-            <button id="removeLogoBtn" class="btn small danger">🗑️ Remover Logo</button>
+            <button id="addLogoBtn" class="btn">Adicionar Logo</button>
+            <button id="removeLogoBtn" class="btn danger">Remover Logo</button>
         </div>
     </header>
 
-    <main>
-        <div class="card-container">
-            <div class="card total-compromissada" id="totalCompromissadaDisplay">
-                <h3>Total Aplicado (Compromissada)</h3>
-                <p>R$ 0,00</p>
+    <div class="card-container">
+        <div class="card" id="totalCompromissadaDisplay">
+            <h3>Total Aplicado (Compromissada)</h3>
+            <p>R$ 0,00</p>
+        </div>
+        <div class="card" id="totalRetornoDisplay">
+            <h3>Total Retorno Bruto</h3>
+            <p>R$ 0,00</p>
+        </div>
+        <div class="card" id="totalCdiDisplay">
+            <h3>Ganho (CDI Total)</h3>
+            <p>R$ 0,00</p>
+        </div>
+    </div>
+
+    <div id="log">Aguardando carregamento de dados do Firestore...</div>
+    
+    <div class="controls">
+        <h2>Configurações Globais</h2>
+        <div class="input-group">
+            <div class="input-item">
+                <label for="taxaCdiAnual">Taxa CDI Anual Padrão (%)</label>
+                <input type="text" id="taxaCdiAnual" value="14,90" placeholder="Ex: 14,90" onchange="calculateAndRender()">
             </div>
-            <div class="card total-retorno" id="totalRetornoDisplay">
-                <h3>Total Retorno Bruto</h3>
-                <p>R$ 0,00</p>
-            </div>
-            <div class="card total-cdi" id="totalCdiDisplay">
-                <h3>Ganho (CDI Total)</h3>
-                <p>R$ 0,00</p>
+            <div class="input-item">
+                <label for="diasAno">Dias Úteis no Ano Padrão</label>
+                <input type="number" id="diasAno" value="252" placeholder="Ex: 252" onchange="calculateAndRender()">
             </div>
         </div>
+        <button id="saveGlobalBtn" class="btn" onclick="saveState()">Salvar Configurações e Dados</button>
+    </div>
 
-        <div id="log">Aguardando carregamento de dados do Firestore...</div>
-        
-        <hr>
-
-        <div class="controls">
-            <h2>⚙️ Configurações Globais</h2>
-            <div class="input-group">
-                <div class="input-item">
-                    <label for="taxaCdiAnual">Taxa CDI Anual Padrão (%)</label>
-                    <input type="text" id="taxaCdiAnual" value="14,90" placeholder="Ex: 14,90" onchange="calculateAndRender()">
-                </div>
-                <div class="input-item">
-                    <label for="diasAno">Dias Úteis no Ano Padrão</label>
-                    <input type="number" id="diasAno" value="252" placeholder="Ex: 252" onchange="calculateAndRender()">
-                </div>
+    <div class="manual-entry">
+        <h2>Lançamento Manual / Edição</h2>
+        <input type="hidden" id="editIndex" value="-1">
+        <div class="input-group">
+            <div class="input-item">
+                <label for="manualData">Data (AAAA-MM-DD)</label>
+                <input type="date" id="manualData">
             </div>
-            <div class="btn-container">
-                <button id="saveGlobalBtn" class="btn" onclick="saveState()">💾 Salvar Configurações e Dados</button>
+            <div class="input-item">
+                <label for="manualDesc">Descrição / Resumo</label>
+                <input type="text" id="manualDesc" placeholder="Operação">
             </div>
-        </div>
-
-        <hr>
-
-        <div class="manual-entry">
-            <h2>✍️ Lançamento Manual / Edição</h2>
-            <input type="hidden" id="editIndex" value="-1">
-            <div class="input-group">
-                <div class="input-item" style="min-width: 100px;">
-                    <label for="manualData">Data (AAAA-MM-DD)</label>
-                    <input type="date" id="manualData">
-                </div>
-                <div class="input-item">
-                    <label for="manualDesc">Descrição / Resumo da Operação</label>
-                    <input type="text" id="manualDesc" placeholder="Ex: Operação Tesouro Direto">
-                </div>
-                <div class="input-item">
-                    <label for="manualBanco">Banco</label>
-                    <input type="text" id="manualBanco" placeholder="Ex: BANCO DO BRASIL S.A.">
-                </div>
-                <div class="input-item" style="min-width: 120px;">
-                    <label for="manualCedente">Conta Cedente</label>
-                    <input type="text" id="manualCedente" placeholder="000.000">
-                </div>
-                <div class="input-item" style="min-width: 120px;">
-                    <label for="manualCessionario">Conta Cessionário</label>
-                    <input type="text" id="manualCessionario" placeholder="000.000">
-                </div>
+            <div class="input-item">
+                <label for="manualBanco">Banco</label>
+                <input type="text" id="manualBanco" placeholder="Banco S.A.">
             </div>
-            <div class="input-group">
-                <div class="input-item" style="min-width: 150px;">
-                    <label for="manualCompromissada">Valor Compromissada (R$)</label>
-                    <input type="text" id="manualCompromissada" placeholder="1.000.000,00">
-                </div>
-                <div class="input-item" style="min-width: 150px;">
-                    <label for="manualRetorno">Valor Retorno Bruto (R$)</label>
-                    <input type="text" id="manualRetorno" placeholder="1.000.413,50">
-                </div>
-                 <div class="input-item" style="min-width: 100px;">
-                    <label for="manualCdiTaxa">Taxa CDI (%) (Opcional)</label>
-                    <input type="text" id="manualCdiTaxa" placeholder="14,90 (se for diferente do padrão)">
-                </div>
+            <div class="input-item">
+                <label for="manualCedente">Conta Cedente</label>
+                <input type="text" id="manualCedente">
             </div>
-            <div class="btn-container">
-                <button id="addBtn" class="btn">➕ Adicionar Lançamento</button>
-                <button id="cancelEditBtn" class="btn secondary" style="display: none;">❌ Cancelar Edição</button>
+            <div class="input-item">
+                <label for="manualCessionario">Conta Cessionário</label>
+                <input type="text" id="manualCessionario">
             </div>
         </div>
-
-        <hr>
-
-        <div class="filter-controls">
-            <h2>🔍 Filtros e Ferramentas</h2>
-            <div class="input-group" style="align-items: flex-end;">
-                <div class="input-item" style="min-width: 150px;">
-                    <label for="filterStartDate">Data Inicial</label>
-                    <input type="date" id="filterStartDate">
-                </div>
-                <div class="input-item" style="min-width: 150px;">
-                    <label for="filterEndDate">Data Final</label>
-                    <input type="date" id="filterEndDate">
-                </div>
-                <div class="input-item" style="flex-grow: 0;">
-                    <label for="showIndividualOps">Mostrar Detalhe?</label>
-                    <input type="checkbox" id="showIndividualOps" style="width: 20px; height: 20px; margin-top: 5px;">
-                </div>
-                <div class="input-item" style="flex-grow: 1;">
-                    <button id="filterBtn" class="btn">🔎 Aplicar Filtros</button>
-                </div>
-                <div class="input-item" style="flex-grow: 1;">
-                    <button id="resetFilterBtn" class="btn secondary">🧹 Limpar Filtros</button>
-                </div>
+        <div class="input-group">
+            <div class="input-item">
+                <label for="manualCompromissada">Valor Compromissada (R$)</label>
+                <input type="text" id="manualCompromissada" placeholder="1000,00">
             </div>
-            
-            <div class="btn-container">
-                <input type="file" id="excelFile" accept=".xlsx, .xls" multiple>
-                <button id="loadExcelBtn" class="btn">📥 Importar Excel (.xlsx)</button>
-                <button id="exportBtn" class="btn">📤 Exportar Tabela (Excel)</button>
-                <button id="printBtn" class="btn secondary">🖨️ Imprimir Tabela</button>
-                <button id="deleteAllBtn" class="btn danger">💣 Excluir TODAS as Operações</button>
+            <div class="input-item">
+                <label for="manualRetorno">Valor Retorno Bruto (R$)</label>
+                <input type="text" id="manualRetorno" placeholder="1000,41">
+            </div>
+             <div class="input-item">
+                <label for="manualCdiTaxa">Taxa CDI (%) (Opcional)</label>
+                <input type="text" id="manualCdiTaxa" placeholder="14,90 (se for diferente)">
+            </div>
+        </div>
+        <button id="addBtn" class="btn">Adicionar Lançamento</button>
+        <button id="cancelEditBtn" class="btn secondary" style="display: none;">Cancelar Edição</button>
+    </div>
+
+    <div class="filter-controls">
+        <h2>Filtros e Ferramentas</h2>
+        <div class="input-group">
+            <div class="input-item">
+                <label for="filterStartDate">Data Inicial</label>
+                <input type="date" id="filterStartDate">
+            </div>
+            <div class="input-item">
+                <label for="filterEndDate">Data Final</label>
+                <input type="date" id="filterEndDate">
+            </div>
+             <div class="input-item" style="flex-grow: 0;">
+                <label for="showIndividualOps">Mostrar Detalhe?</label>
+                <input type="checkbox" id="showIndividualOps" style="width: 20px; height: 20px; margin-top: 5px;">
             </div>
         </div>
         
-        <hr>
+        <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+            <button id="filterBtn" class="btn">Aplicar Filtros</button>
+            <button id="resetFilterBtn" class="btn secondary">Limpar Filtros</button>
 
-        <div class="table-section">
-            <h2>📊 Resultados das Operações</h2>
-            <div id="resultTable">
-                </div>
+            <input type="file" id="excelFile" accept=".xlsx, .xls" multiple>
+            <button id="loadExcelBtn" class="btn">Importar Excel (.xlsx)</button>
+            <button id="exportBtn" class="btn">Exportar Tabela (Excel)</button>
+            <button id="printBtn" class="btn secondary">Imprimir Tabela</button>
+            <button id="deleteAllBtn" class="btn danger">Excluir TODAS as Operações</button>
         </div>
-    </main>
+    </div>
+    
+    <div class="table-section">
+        <h2>Resultados das Operações</h2>
+        <div id="resultTable">
+            </div>
+    </div>
 
 <script>
     /* ---------- Inicialização Firebase e Variáveis Globais ---------- */
     const firebaseConfig = {
-        apiKey: "AIzaSyD_vxw2VcSPO_tMXgrl7quZ855ODvpqQuR8",
+        apiKey: "AIzaSyD_vxw2VcSPO_tMXgrl7quZ855ODvpqQuR8", // *** SUBSTITUA PELA SUA CHAVE REAL ***
         authDomain: "controle-cdi.firebaseapp.com",
         databaseURL: "https://controle-cdi-default-rtdb.firebaseio.com",
         projectId: "controle-cdi",
@@ -509,7 +249,7 @@
         return '';
     }
 
-    // Função de compressão de imagem (para o logo)
+    // Função de compressão de imagem (para o logo - Mantida)
     async function compressImageFile(file, quality = 0.7, maxSize = 600) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -535,30 +275,9 @@
         });
     }
 
-    // Função de reset de tema
+    // Função de reset de tema (Básica)
     function resetThemeToFixed() {
-        document.documentElement.style.setProperty('--primary', '#0A0A33');
-        document.documentElement.style.setProperty('--primary-light', '#1A1A55');
-        document.documentElement.style.setProperty('--secondary', '#C00000');
-        document.documentElement.style.setProperty('--secondary-light', '#E00000');
-
-        document.querySelectorAll('.btn:not(.secondary):not(.danger)').forEach(b => {
-            b.style.background = 'var(--primary)';
-            b.style.border = '1px solid white';
-            b.style.color = 'white';
-        });
-
-        document.querySelectorAll('.btn.secondary').forEach(b => {
-            b.style.background = 'var(--secondary)';
-            b.style.border = '1px solid white';
-            b.style.color = 'white';
-        });
-
-        document.querySelectorAll('.btn.danger').forEach(b => {
-            b.style.background = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim();
-            b.style.color = '#ffffff';
-            b.style.border = '1px solid white';
-        });
+        // Nada a fazer no modo básico
     }
 
     /* --- Persistência e Estado (FIREBASE FIRESTORE) --- */
@@ -576,7 +295,7 @@
             };
 
             DOC_REF.set(state)
-                .then(() => console.log('✅ Dados salvos na nuvem (Firestore)!'))
+                .then(() => log('✅ Dados salvos na nuvem (Firestore)!'))
                 .catch(e => {
                     log('❌ Erro ao salvar no Firestore: ' + e.message);
                     console.error("Erro ao salvar:", e);
@@ -613,7 +332,7 @@
                 }
             })
             .catch(e => {
-                log('❌ Erro ao carregar dados do Firestore: ' + e.message);
+                log('❌ Erro ao carregar dados do Firestore. Verifique as chaves API e permissões: ' + e.message);
                 console.error("Erro ao carregar:", e);
             })
             .finally(() => {
@@ -654,7 +373,7 @@
         document.getElementById('taxaCdiAnual').value = formatPercent(cdiGlobal);
         document.getElementById('diasAno').value = diasAno;
 
-        let html = "<table><thead><tr><th>Data</th><th>Descrição/Resumo</th><th>Banco</th><th>Conta Cedente</th><th>Conta Cessionário</th><th>Compromissada</th><th>Retorno Bruto</th><th>PU IDA</th><th>PU VOLTA</th><th>Taxa CDI Anual (%)</th><th>Ganho (R$) Diário</th><th class='action-cell'>Ações</th></tr></thead><tbody>";
+        let html = "<table><thead><tr><th>Data</th><th class='col-left'>Descrição/Resumo</th><th>Banco</th><th>Conta Cedente</th><th>Conta Cessionário</th><th>Compromissada</th><th>Retorno Bruto</th><th>PU IDA</th><th>PU VOLTA</th><th>Taxa CDI Anual (%)</th><th>Ganho (R$) Diário</th><th class='action-cell'>Ações</th></tr></thead><tbody>";
         const resumo = {};
 
         ops.forEach((op, index) => {
@@ -662,7 +381,6 @@
             const comp = parseNumber(op.compromissada);
             const ret = parseNumber(op.retorno);
 
-            // Calcula o ganho com inversão de sinal se for "RECOMPRA"
             const isRecompra = (typeof op.descricao === 'string' && op.descricao.toUpperCase().includes('RECOMPRA'));
             const ganho = (ret - comp) * (isRecompra ? -1 : 1);
             const taxaUsada = (cleanCdiTaxa(op.cdiTaxa) > 0 && cleanCdiTaxa(op.cdiTaxa) !== 100) ? cleanCdiTaxa(op.cdiTaxa) : cdiGlobal;
@@ -683,7 +401,7 @@
                 html += `<tr class="individual-operation-row" data-original-index="${operacoes.indexOf(op)}">
                     <td class="col-data">${formatDataBR(op.data)}</td>
                     <td class="col-left" title="${op.descricao || '-'}">${(op.descricao || '-')}</td>
-                    <td class="col-left" title="${op.banco || '-'}">${(op.banco || '-')}</td>
+                    <td>${(op.banco || '-')}</td>
                     <td>${op.contaCedente || '-'}</td>
                     <td>${op.contaCessionario || '-'}</td>
                     <td>${formatBRL(comp)}</td>
@@ -707,32 +425,22 @@
             const ganhoDiarioClass = r.totalGanho > 0 ? 'ganho' : (r.totalGanho < 0 ? 'perda' : '');
             const taxa = (Number(r.primeiraTaxa) || 0).toFixed(4).replace('.', ',');
 
-            // Se for exibido o detalhe, adiciona um separador/resumo. Se não, apenas o resumo.
+            const rowContent = `
+                <td class="col-data">${formatDataBR(d)}</td>
+                <td class="col-left">RESUMO DIÁRIO</td>
+                <td colspan="3">-</td>
+                <td>${formatBRL(r.totalCompromissada)}</td>
+                <td>${formatBRL(r.totalRetorno)}</td>
+                <td colspan="2">-</td>
+                <td style="text-align:center;">${taxa}</td>
+                <td class="${ganhoDiarioClass}">${formatBRL(r.totalGanho)}</td>
+                <td class="action-cell">-</td>`;
+
             if (showIndividual) {
                 html += `<tr><td colspan="12" style="padding: 0; height: 5px;"></td></tr>`;
-                html += `<tr style="background: rgba(10,10,51,0.08); font-weight: 700;">
-                    <td class="col-data">${formatDataBR(d)}</td>
-                    <td class="col-left">RESUMO DIÁRIO</td>
-                    <td colspan="3">-</td>
-                    <td>${formatBRL(r.totalCompromissada)}</td>
-                    <td>${formatBRL(r.totalRetorno)}</td>
-                    <td colspan="2">-</td>
-                    <td style="text-align:center;">${taxa}</td>
-                    <td class="${ganhoDiarioClass}">${formatBRL(r.totalGanho)}</td>
-                    <td class="action-cell">-</td>
-                </tr>`;
+                html += `<tr style="background: #f0f0f0; font-weight: bold;">${rowContent}</tr>`;
             } else {
-                html += `<tr>
-                    <td class="col-data">${formatDataBR(d)}</td>
-                    <td class="col-left">RESUMO DIÁRIO</td>
-                    <td colspan="3">-</td>
-                    <td>${formatBRL(r.totalCompromissada)}</td>
-                    <td>${formatBRL(r.totalRetorno)}</td>
-                    <td colspan="2">-</td>
-                    <td style="text-align:center;">${taxa}</td>
-                    <td class="${ganhoDiarioClass}">${formatBRL(r.totalGanho)}</td>
-                    <td class="action-cell">-</td>
-                </tr>`;
+                html += `<tr>${rowContent}</tr>`;
             }
         });
 
@@ -746,7 +454,7 @@
         log(`Tabela atualizada. ${ops.length} operações exibidas (filtradas).`);
     }
 
-    // Função para Limpar o Formulário Manual
+    // Funções de Formulário (Mantidas)
     function clearManualForm() {
         document.getElementById('manualData').value = '';
         document.getElementById('manualDesc').value = '';
@@ -761,8 +469,6 @@
         document.getElementById('cancelEditBtn').style.display = 'none';
         log('Formulário manual limpo.');
     }
-
-    // Função para carregar dados para edição
     function loadForEdit(index) {
         const op = operacoes[index];
         if (!op) return log('❌ Erro: Operação não encontrada para edição.');
@@ -777,13 +483,12 @@
         document.getElementById('manualRetorno').value = parseNumber(op.retorno).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
         document.getElementById('editIndex').value = index;
         document.getElementById('addBtn').textContent = 'Salvar Edição';
-        document.getElementById('cancelEditBtn').style.display = 'inline-flex';
+        document.getElementById('cancelEditBtn').style.display = 'inline-block';
         log(`✏️ Carregado dados da operação ${index} para edição.`);
     }
 
     /* --- Event Listeners e Funções de Ação --- */
     
-    // Configura listeners para os botões de filtro
     function attachFilterListeners() {
         document.getElementById('filterBtn').addEventListener('click', calculateAndRender);
         document.getElementById('resetFilterBtn').addEventListener('click', () => {
@@ -820,7 +525,7 @@
             cdiTaxa: cdiTaxa,
             compromissada: comp,
             retorno: ret,
-            puIda: 0, // Campos vazios para compatibilidade
+            puIda: 0, 
             puVolta: 0
         };
 
@@ -902,7 +607,7 @@
         window.print();
     });
 
-    // Configuração de Logo
+    // Configuração de Logo (Mantidas)
     if (logoInput) {
         logoInput.addEventListener('change', async (e) => {
             const file = e.target.files && e.target.files[0];
@@ -940,7 +645,7 @@
         });
     }
 
-    // Importação de Arquivos (Apenas esboço da lógica, requer mapeamento de cabeçalhos)
+    // Lógica da Importação de Arquivos (Completa)
     document.getElementById('loadExcelBtn').addEventListener('click', () => {
         const fileInput = document.getElementById('excelFile');
         const files = fileInput.files;
@@ -959,28 +664,29 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
+                // Lendo como array para melhor manipulação de cabeçalhos
                 const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-                const headers = json[0];
+                const headers = json[0] ? json[0].map(h => String(h).trim().toLowerCase().replace(/[^a-z0-9]/g, '')) : [];
                 const dataRows = json.slice(1);
                 
                 const newOperations = dataRows.map(row => {
-                    // Mapeamento de exemplo (ajuste para seus headers reais)
                     const tempOp = {};
                     headers.forEach((header, i) => {
-                        if (header && String(header).toLowerCase().includes('data')) tempOp.data = row[i];
-                        if (header && String(header).toLowerCase().includes('descri')) tempOp.descricao = row[i];
-                        if (header && String(header).toLowerCase().includes('banco')) tempOp.banco = row[i];
-                        if (header && (String(header).toLowerCase().includes('taxa') || String(header).toLowerCase().includes('tx.'))) tempOp.cdiTaxa = row[i];
-                        if (header && String(header).toLowerCase().includes('compromissada')) tempOp.compromissada = row[i];
-                        if (header && String(header).toLowerCase().includes('retorno')) tempOp.retorno = row[i];
-                        if (header && String(header).toLowerCase().includes('ida')) tempOp.puIda = row[i];
-                        if (header && String(header).toLowerCase().includes('volta')) tempOp.puVolta = row[i];
-                        if (header && String(header).toLowerCase().includes('cedente')) tempOp.contaCedente = row[i];
-                        if (header && String(header).toLowerCase().includes('cessionario')) tempOp.contaCessionario = row[i];
+                        const val = row[i];
+                        if (header.includes('data')) tempOp.data = val;
+                        else if (header.includes('descri')) tempOp.descricao = val;
+                        else if (header.includes('banco')) tempOp.banco = val;
+                        else if (header.includes('taxa') || header.includes('tx')) tempOp.cdiTaxa = val;
+                        else if (header.includes('compromissada') || header.includes('comp')) tempOp.compromissada = val;
+                        else if (header.includes('retorno') || header.includes('ret')) tempOp.retorno = val;
+                        else if (header.includes('ida') && header.includes('pu')) tempOp.puIda = val;
+                        else if (header.includes('volta') && header.includes('pu')) tempOp.puVolta = val;
+                        else if (header.includes('cedente')) tempOp.contaCedente = val;
+                        else if (header.includes('cessionario')) tempOp.contaCessionario = val;
                     });
                     
-                    // Normaliza os dados
+                    // Normaliza a data
                     if(tempOp.data) tempOp.data = normalizeDate(tempOp.data);
                     
                     return tempOp;
