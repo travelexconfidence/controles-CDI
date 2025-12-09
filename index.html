@@ -1,695 +1,925 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <title>Controle de Ganhos CDI — Layout Empilhado</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    :root{
-      --primary:#0A0A33; --primary-light:#1A1A55;
-      --secondary:#C00000; --secondary-light:#E00000;
-      --danger:#c62828; --bg-start:#f4f8fb; --bg-end:#eef6fb;
-      --card-bg:#fff; --card-border:rgba(0,0,0,0.06);
-      --text-dark:#0f1724; --muted:#6b7280; --success:#2e7d32;
-      --gap:12px; --radius:10px; --shadow:0 8px 20px rgba(16,24,40,0.06);
-    }
-    html,body{height:100%;margin:0;font-family:Inter, Roboto, system-ui, -apple-system, "Segoe UI", Arial;}
-    body{background:linear-gradient(180deg,var(--bg-start),var(--bg-end)); color:var(--text-dark);
-      padding:calc(var(--gap)*1.2); -webkit-font-smoothing:antialiased; font-size:14px;}
-
-    #siteLogo{display:block; max-width:140px; width:100%; height:auto; border-radius:6px;
-      box-shadow:var(--shadow); margin:0 0 6px 0;}
-    #logo-wrapper{margin-bottom:8px;}
-    #header-container{display:flex; align-items:center; gap:10px; margin-bottom:8px; width:fit-content;}
-    #logo-placeholder{font-size:1.4rem; color:var(--primary);} h1{margin:0; color:var(--text-dark); font-size:1.25rem; font-weight:700;}
-    #left-header-content{display:flex; align-items:center; gap:10px;}
-    #top-actions{display:flex; align-items:center; gap:10px; padding:10px; background:var(--card-bg);
-      border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--card-border); flex-wrap:wrap;}
-    #header-left{display:flex; align-items:center; gap:10px;} #header-right{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
-
-    .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; border-radius:8px; cursor:pointer;
-      font-weight:600; transition:all .2s ease; background:var(--primary); color:#fff; border:1px solid #fff;
-      box-shadow:0 4px 10px rgba(0,0,0,.08)}
-    .btn.secondary{background:var(--secondary); color:#fff; border:1px solid #fff}
-    .btn.small{padding:6px 10px; font-size:13px; border-radius:7px}
-    .btn:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.15); background:var(--primary-light)}
-    .btn.secondary:hover{background:var(--secondary-light); box-shadow:0 8px 20px rgba(192,0,0,.25)}
-    .btn:active{transform:none; filter:brightness(.96); box-shadow:0 2px 5px rgba(0,0,0,.05)}
-    .btn.danger{background:var(--secondary); color:#fff; border:1px solid #fff; box-shadow:0 4px 10px rgba(198,40,40,.25)}
-    .btn.danger:hover{filter:brightness(.85)}
-
-    #main-container{display:flex; flex-direction:column; gap:14px; align-items:stretch;}
-    .card{background:var(--card-bg); padding:14px; border-radius:10px; box-shadow:var(--shadow); border:1px solid var(--card-border); color:var(--text-dark);}
-
-    .input-row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:8px;}
-    .input-row label{font-size:13px; color:var(--muted); font-weight:600; display:block; margin-bottom:6px;}
-    input[type="text"],input[type="date"]{padding:8px 10px; border-radius:8px; border:1px solid rgba(15,23,36,0.06); background:#fff; color:var(--text-dark); min-width:120px;}
-
-    .totals{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:12px;}
-    .total-card{padding:10px; border-radius:8px; border:1px solid rgba(15,23,36,0.04); background:linear-gradient(180deg,#fff,#fbfdff)}
-    .total-card h4{margin:0; font-size:12px; color:var(--muted)}
-    .total-card p{margin:6px 0 0 0; font-size:18px; font-weight:800; color:var(--text-dark)}
-    #totalCdiDisplay p{color:var(--success)!important}
-
-    .table-wrap{overflow:auto; border-radius:8px}
-    table{width:100%; border-collapse:collapse; margin-top:8px; font-size:13px; color:var(--text-dark)}
-    thead th{position:sticky; top:0; z-index:2; background:linear-gradient(180deg,var(--primary-light),var(--primary));
-      color:#fff; padding:10px 8px; text-align:left; font-weight:700; border-bottom:1px solid rgba(0,0,0,0.06)}
-    tbody td{padding:8px 8px; border-bottom:1px solid rgba(0,0,0,0.04); text-align:right}
-    tbody tr:nth-child(even){background:rgba(0,0,0,0.02)}
-    td:first-child,th:first-child{text-align:center; width:90px}
-    .col-left{text-align:left; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--primary); font-weight:600}
-    .action-cell{text-align:center}
-    .ganho,.perda{font-weight:800; padding:2px 6px; border-radius:4px; display:inline-block; min-width:60px; text-align:center}
-    .ganho{color:var(--success)!important; background:rgba(46,125,50,0.1); border:1px solid rgba(46,125,50,0.2)}
-    .perda{color:var(--danger)!important; background:rgba(198,40,40,0.1); border:1px solid rgba(198,40,40,0.2)}
-    b,strong{font-weight:800; color:var(--primary)}
-
-    @media (max-width:980px){
-      #siteLogo{max-width:120px; display:block; margin:0 auto 8px}
-      #header-container{margin-bottom:0; width:100%; justify-content:center}
-      #left-header-content{justify-content:center}
-      .input-row{flex-direction:column; align-items:stretch}
-    }
-    @media print{
-      body{background:#fff; padding:0; color:#000}
-      #input-panel .file-label, #input-panel .logo-label, #deleteAllBtn{display:none}
-    }
-  </style>
-
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-
-  <!-- Firebase SDKs (Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-</head>
-<body>
-  <div id="logo-wrapper">
-    <!-- Defina um logo padrão (opcional) colocando img/logo.png na pasta public -->
-    <img id="siteLogo" src="img/logo.png" alt="Logo do site">
-  </div>
-
-  <div id="header-container">
-    <div id="left-header-content">
-      <div id="logo-placeholder">📈</div>
-      <h1>Controle de Ganhos CDI</h1>
-    </div>
-  </div>
-
-  <div id="top-actions" class="card" role="region" aria-label="Ações principais">
-    <div id="header-left">
-      <div style="font-weight:700;">Resumo Diário</div>
-      <div style="font-size:12px;color:var(--muted);">Filtros, importação e ações rápidas</div>
-    </div>
-    <div id="header-right">
-      <button id="printBtn" class="btn small" title="Imprimir">Imprimir</button>
-      <button id="exportBtn" class="btn small secondary" title="Exportar">Exportar</button>
-
-      <label class="file-label" for="excelFile" title="Selecionar arquivos">
-        <input type="file" id="excelFile" accept=".xlsx,.xls,.csv,.txt" multiple>
-        <span class="btn small">Procurar</span>
-      </label>
-      <button id="loadExcelBtn" class="btn small secondary" title="Importar arquivos">Importar</button>
-
-      <label class="logo-label" for="logoFile" title="Carregar logo">
-        <input type="file" id="logoFile" accept="image/*">
-        <span class="btn small">Procurar</span>
-      </label>
-      <button id="addLogoBtn" class="btn small secondary" title="Carregar Logo">Carregar Logo</button>
-      <button id="removeLogoBtn" class="btn small" title="Remover">Remover</button>
-
-      <button id="deleteAllBtn" class="btn small secondary danger" title="Excluir tudo">🗑️</button>
-    </div>
-  </div>
-
-  <div id="main-container">
-    <div id="results-panel" class="card">
-      <h2 style="margin:0 0 8px 0;">📊 Resumo Diário</h2>
-
-      <div class="card filter-card" style="margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-          <div style="font-weight:600;color:var(--muted);">Filtros</div>
-          <div style="font-size:12px;color:var(--muted);">Mostrar detalhe por operação</div>
-        </div>
-
-        <div class="input-row" style="margin-top:8px;">
-          <div>
-            <label for="filterStartDate">Data de Início</label>
-            <input type="date" id="filterStartDate">
-          </div>
-          <div>
-            <label for="filterEndDate">Data de Fim</label>
-            <input type="date" id="filterEndDate">
-          </div>
-          <div style="display:flex;align-items:flex-end;gap:8px;">
-            <button id="filterBtn" class="btn small">Filtrar</button>
-            <button id="resetFilterBtn" class="btn small secondary">Limpar</button>
-          </div>
-        </div>
-
-        <div style="margin-top:8px;">
-          <label style="font-weight:600;color:var(--muted)">
-            <input type="checkbox" id="showIndividualOps" checked> Mostrar Detalhe por Operação
-          </label>
-        </div>
-      </div>
-
-      <div class="totals">
-        <div class="total-card" id="totalCompromissadaDisplay"><h4>Compromissada TOTAL</h4><p>R$ 0,00</p></div>
-        <div class="total-card" id="totalRetornoDisplay"><h4>Retorno Bruto TOTAL</h4><p>R$ 0,00</p></div>
-        <div class="total-card" id="totalCdiDisplay"><h4>Ganho (R$) TOTAL</h4><p>R$ 0,00</p></div>
-      </div>
-
-      <div class="table-wrap"><div id="resultTable"></div></div>
-      <p style="font-size:12px;color:var(--muted);margin-top:10px;">
-        ⚠️ O <strong>Ganho (R$) Diário</strong> é calculado pelo Valor Retorno Bruto - Valor Compromissada, com inversão para RECOMPRA.
-      </p>
-    </div>
-
-    <div id="input-panel" class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <h3 style="margin:0 0 8px 0;">⭐ Configuração Global</h3>
-      </div>
-
-      <div class="input-row">
-        <div>
-          <label for="taxaCdiAnual">Taxa CDI Anual Global (%)</label>
-          <input type="text" id="taxaCdiAnual" placeholder="14,90" value="14,90">
-        </div>
-        <div>
-          <label for="diasAno">Dias no Ano</label>
-          <input type="text" id="diasAno" placeholder="252" value="252">
-        </div>
-      </div>
-
-      <hr style="border:none;border-top:1px solid rgba(15,23,36,0.04);margin:12px 0">
-
-      <div>
-        <h3 style="margin:0 0 8px 0;">📂 Importação</h3>
-        <p style="font-size:12px;color:var(--muted);margin:0 0 10px 0;">
-          *O sistema tenta reconhecer os cabeçalhos, priorizando 'TX. 252' para a taxa CDI.
-        </p>
-      </div>
-
-      <hr style="border:none;border-top:1px solid rgba(15,23,36,0.04);margin:12px 0">
-
-      <div>
-        <h3 style="margin:0 0 8px 0;">➕ Lançamento Manual</h3>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <input type="hidden" id="editIndex" value="-1">
-          <div><label for="manualData">Data do Lançamento</label><br><input type="date" id="manualData" required></div>
-          <div><label for="manualDesc">Descrição</label><br><input type="text" id="manualDesc" placeholder="Ex: REVENDA - Aplicação Mês"></div>
-          <div><label for="manualBanco">Banco / Contraparte</label><br><input type="text" id="manualBanco" placeholder="Ex: BTG Pactual"></div>
-          <div style="display:flex;gap:8px;">
-            <div style="flex:1;"><label for="manualCedente">Conta Cedente</label><br><input type="text" id="manualCedente" placeholder="8300005"></div>
-            <div style="flex:1;"><label for="manualCessionario">Conta Cessionário</label><br><input type="text" id="manualCessionario" placeholder="12000005"></div>
-          </div>
-          <div><label for="manualCdiTaxa">Taxa CDI Anual Específica (%)</label><br><input type="text" id="manualCdiTaxa" placeholder="14,90 (Deixar vazio para usar Global)"></div>
-          <div style="display:flex;gap:8px;">
-            <div style="flex:1;"><label for="manualCompromissada">Valor Compromissada</label><br><input type="text" id="manualCompromissada" placeholder="10.000,00"></div>
-            <div style="flex:1;"><label for="manualRetorno">Valor Retorno (Bruto)</label><br><input type="text" id="manualRetorno" placeholder="10.050,25"></div>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button id="addBtn" class="btn" style="flex:1;">Adicionar Lançamento</button>
-            <button id="cancelEditBtn" class="btn secondary" style="flex:1;display:none;">Cancelar Edição</button>
-          </div>
-        </div>
-      </div>
-
-      <pre id="log" style="height:84px;overflow:auto;margin-top:12px;color:var(--muted);">Aguardando...</pre>
-    </div>
-  </div>
-
-  <script>
-    // Configuração do Firebase (ajuste storageBucket para .appspot.com se necessário)
-    const firebaseConfig = {
-      apiKey: "AIzaSyD_vxw2VcSPO_tMXgrl7quZ85ODvpqQuR8",
-      authDomain: "controle-cdi.firebaseapp.com",
-      databaseURL: "https://controle-cdi-default-rtdb.firebaseio.com",
-      projectId: "controle-cdi",
-      storageBucket: "controle-cdi.appspot.com",
-      messagingSenderId: "215359645646",
-      appId: "1:215359645646:web:cd61ae2f72e100d522ad9f",
-      measurementId: "G-TV1M1QWQRC"
-    };
-
-    // Estado global
-    let app, database, storage;
-    let operacoes = [];
-    let globalConfig = { taxaCdiAnual: '14,90', diasAno: '252' };
-    let totalCompromissada=0, totalRetorno=0, totalGanho=0;
-
-    function log(message){ document.getElementById('log').textContent = message; }
-
-    // Inicializa Firebase
-    try {
-      app = firebase.initializeApp(firebaseConfig);
-      database = app.database();
-      storage = app.storage();
-      log('✅ Firebase inicializado.');
-    } catch(e) {
-      log('❌ Erro ao inicializar o Firebase.'); console.error(e);
-    }
-
-    // Tema fixo
-    function resetThemeToFixed(){
-      document.documentElement.style.setProperty('--primary','#0A0A33');
-      document.documentElement.style.setProperty('--primary-light','#1A1A55');
-      document.documentElement.style.setProperty('--secondary','#C00000');
-      document.documentElement.style.setProperty('--secondary-light','#E00000');
-      document.querySelectorAll('.btn:not(.secondary):not(.danger)').forEach(b=>{
-        b.style.background='var(--primary)'; b.style.border='1px solid white'; b.style.color='#fff';
-      });
-      document.querySelectorAll('.btn.secondary').forEach(b=>{
-        b.style.background='var(--secondary)'; b.style.border='1px solid white'; b.style.color='#fff';
-      });
-      document.querySelectorAll('.btn.danger').forEach(b=>{
-        b.style.background=getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim();
-        b.style.color='#fff'; b.style.border='1px solid white';
-      });
-    }
-
-    // Utilitários
-    function cleanCurrency(v){ if(typeof v!=='string') v=String(v); let s=v.replace(/[R$\s]/g,'').replace(/\./g,'').replace(/,/g,'.'); const n=parseFloat(s); return isNaN(n)?0:n; }
-    function parseNumber(v){ if(v===undefined||v===null||v==='') return 0; if(typeof v==='string' && (v.includes(',')||v.includes('R$'))) return cleanCurrency(v); const n=parseFloat(v); return isNaN(n)?0:n; }
-    function cleanCdiTaxa(v){ if(v===undefined||v===null||v==='') return 0; if(typeof v!=='string') v=String(v); v=v.replace(/[^0-9,.]/g,''); let c=v.replace(',','.'); const parts=c.split('.'); if(parts.length>2) c=parts.slice(0,-1).join('')+'.'+parts.slice(-1); const n=parseFloat(c); return isNaN(n)?0:n; }
-    function formatBRL(n){ return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2}); }
-    function formatPercent(n){ if(n===undefined||n===null||isNaN(n)) return ''; return n.toFixed(4).replace('.',','); }
-    function formatPU(n){ if(n===undefined||n===null||isNaN(n)||n===0) return '-'; return n.toLocaleString('pt-BR',{minimumFractionDigits:4,maximumFractionDigits:4}); }
-    function formatDataBR(s){ if(!s) return '-'; if(s.match(/^\d{4}-\d{2}-\d{2}$/)){ const [y,m,d]=s.split('-'); return `${d}/${m}/${y}`; } if(s.match(/^\d{2}\/\d{2}\/\d{4}$/)) return s; const d=new Date(s); if(!isNaN(d)) return d.toLocaleDateString('pt-BR'); return s; }
-    function normalizeDate(s){
-      if(!s) return '';
-      s=String(s).trim();
-      if(s.match(/^\d{4}-\d{2}-\d{2}$/)) return s;
-      if(s.match(/^\d{2}\/\d{2}\/\d{4}$/)){ const [d,m,y]=s.split('/'); return `${y}-${m}-${d}`; }
-      const num=parseFloat(s);
-      if(!isNaN(num) && num>25569 && num<70000){
-        const base=new Date('1899-12-30'); const date=new Date(base.getTime()+num*24*60*60*1000);
-        if(!isNaN(date)){ const y=date.getUTCFullYear(); const m=date.getUTCMonth()+1; const d=date.getUTCDate(); const pad=n=>n<10?'0'+n:n; return `${y}-${pad(m)}-${pad(d)}`; }
-      }
-      try{ const d=new Date(s); if(!isNaN(d)) return d.toISOString().split('T')[0]; }catch(e){}
-      return '';
-    }
-
-    // Persistência: configurações globais
-    function saveConfig(){
-      globalConfig = {
-        taxaCdiAnual: document.getElementById('taxaCdiAnual').value,
-        diasAno: document.getElementById('diasAno').value
-      };
-      database.ref('cdiConfig').set(globalConfig)
-        .then(()=>log('💾 Configurações salvas no Firebase.'))
-        .catch(err=>log('❌ Erro ao salvar configurações: '+err.message));
-    }
-
-    function loadConfig(){
-      database.ref('cdiConfig').on('value', snapshot=>{
-        const cfg = snapshot.val();
-        if(cfg){
-          globalConfig = cfg;
-          document.getElementById('taxaCdiAnual').value = globalConfig.taxaCdiAnual || '14,90';
-          document.getElementById('diasAno').value = globalConfig.diasAno || '252';
-          calculateAndRender();
+    <meta charset="utf-8" />
+    <title>Controle de Ganhos CDI — Layout Empilhado</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+        :root{
+            /* CORES PRINCIPAIS: AZUL MARINHO ESCURO PRIMÁRIO, VERMELHO SECUNDÁRIO */
+            --primary: #0A0A33;  /* Azul Marinho Escuro */
+            --primary-light: #1A1A55; /* Versão mais clara para gradiente/hover */
+            --secondary: #C00000; /* Vermelho Forte (Secundário/Destaque) */
+            --secondary-light: #E00000; /* Vermelho Claro para gradiente/hover */
+            --danger: #c62828;  /* Mantido para ações de exclusão */
+            --bg-start: #f4f8fb;
+            --bg-end: #eef6fb;
+            --card-bg: #ffffff;
+            --card-border: rgba(0,0,0,0.06);
+            --text-dark: #0f1724;
+            --muted: #6b7280;
+            --success: #2e7d32;
+            --gap: 12px;
+            --radius: 10px;
+            --shadow: 0 8px 20px rgba(16,24,40,0.06);
         }
-      });
-    }
-
-    // Persistência: operações (multiusuário em tempo real)
-    function subscribeOperations(){
-      database.ref('cdiOperations').on('value', snapshot=>{
-        const data = snapshot.val();
-        if(data){
-          operacoes = Object.keys(data).map(key => ({ ...data[key], firebaseKey:key }));
-        } else {
-          operacoes = [];
+        /* Base */
+        html,body{height:100%;margin:0;font-family:Inter, Roboto, system-ui, -apple-system, "Segoe UI", Arial;}
+        body{
+            background: linear-gradient(180deg,var(--bg-start),var(--bg-end));
+            color:var(--text-dark);
+            padding:calc(var(--gap) * 1.2);
+            -webkit-font-smoothing:antialiased;
+            font-size:14px;
         }
-        log(`💾 ${operacoes.length} operações carregadas do Firebase.`);
-        calculateAndRender();
-      }, err => log('❌ Erro ao carregar operações: '+err.message));
-    }
 
-    // Logo global via Storage (opcional)
-    const logoInput = document.getElementById('logoFile');
-    const siteLogo = document.getElementById('siteLogo');
-    const addLogoBtn = document.getElementById('addLogoBtn');
-    const removeLogoBtn = document.getElementById('removeLogoBtn');
-
-    // Carrega URL do logo global salvo no DB
-    function loadGlobalLogo(){
-      database.ref('cdiLogoUrl').on('value', snapshot=>{
-        const url = snapshot.val();
-        if(url){
-          siteLogo.src = url;
-          siteLogo.style.display = 'block';
+        /* Ajuste do Logo e Título para ficarem à esquerda e alinhados */
+        #siteLogo{ 
+            display:block; /* Muda para block */
+            max-width:140px; 
+            width:100%; 
+            height:auto; 
+            border-radius:6px; 
+            box-shadow:var(--shadow); 
+            margin:0 0 6px 0; /* Remove margem automática, alinha à esquerda */
         }
-      });
-    }
+        #logo-wrapper{ 
+            margin-bottom:8px;
+        }
 
-    function compressImageFile(file, quality=0.8, maxSize=800){
-      return new Promise((resolve, reject)=>{
-        const reader=new FileReader();
-        reader.onload=()=>{
-          const img=new Image();
-          img.onload=()=>{
-            const canvas=document.createElement('canvas');
-            const ratio=Math.min(1, maxSize/Math.max(img.width,img.height));
-            canvas.width=Math.round(img.width*ratio);
-            canvas.height=Math.round(img.height*ratio);
-            const ctx=canvas.getContext('2d');
-            ctx.drawImage(img,0,0,canvas.width,canvas.height);
-            try{ const dataUrl=canvas.toDataURL('image/jpeg',quality); resolve(dataUrl); }catch(err){ reject(err); }
-          };
-          img.onerror=reject; img.src=reader.result;
+        /* Header */
+        #header-container{ 
+            display:flex; 
+            align-items:center; 
+            gap:10px; 
+            margin-bottom:8px; 
+            width: fit-content; 
+        }
+
+        #logo-placeholder{ font-size:1.4rem; color:var(--primary); } 
+        h1{ margin:0; color:var(--text-dark); font-size:1.25rem; font-weight:700; }
+
+        /* Contêiner para logo e título juntos */
+        #left-header-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Top actions compacto */
+        #top-actions{
+            display:flex; align-items:center; gap:10px; padding:10px;
+            background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--card-border);
+            flex-wrap:wrap;
+        }
+        #header-left{ display:flex; align-items:center; gap:10px; }
+        #header-right{ margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        /* --------------- BOTÕES SÓLIDOS COM CONTORNO BRANCO (ESTILO TRAVELEX) --------------- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            background: var(--primary); 
+            color: white; 
+            border: 1px solid white; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); 
+        }
+        .btn.secondary {
+            background: var(--secondary); 
+            color: white; 
+            border: 1px solid white; 
+        }
+        .btn.small { 
+            padding: 6px 10px; 
+            font-size: 13px; 
+            border-radius: 7px; 
+        }
+        .btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); 
+            background: var(--primary-light); 
+            border-color: white; 
+        }
+        .btn.secondary:hover {
+            background: var(--secondary-light); 
+            border-color: white; 
+            box-shadow: 0 8px 20px rgba(192, 0, 0, 0.25);
+        }
+        .btn:active { 
+            transform: none; 
+            filter: brightness(0.96); 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .btn.danger { 
+            background: var(--secondary); 
+            color: white; 
+            border: 1px solid white; 
+            box-shadow: 0 4px 10px rgba(198, 40, 40, 0.25);
+        }
+        .btn.danger:hover { 
+            filter: brightness(0.85); 
+            border-color: white; 
+        }
+        /* ----------------------------------------------------------- */
+
+        /* Layout empilhado: resultados em cima, painel embaixo */
+        #main-container{
+            display:flex;
+            flex-direction:column;
+            gap:14px;
+            align-items:stretch;
+        }
+        /* Cards */
+        .card{
+            background:var(--card-bg); padding:14px; border-radius:10px; box-shadow:var(--shadow); border:1px solid var(--card-border);
+            color:var(--text-dark);
+        }
+        /* Inputs */
+        .input-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+        .input-row label{ font-size:13px; color:var(--muted); font-weight:600; display:block; margin-bottom:6px; }
+        input[type="text"], input[type="date"]{
+            padding:8px 10px; border-radius:8px; border:1px solid rgba(15,23,36,0.06); background:#fff; color:var(--text-dark); min-width:120px;
+        }
+        /* Totals */
+        .totals{ display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:12px; }
+        .total-card{ padding:10px; border-radius:8px; border:1px solid rgba(15,23,36,0.04); background:linear-gradient(180deg,#fff,#fbfdff); }
+        .total-card h4{ margin:0; font-size:12px; color:var(--muted); }
+        .total-card p{ margin:6px 0 0 0; font-size:18px; font-weight:800; color:var(--text-dark); }
+        /* Ganho total em verde */
+        #totalCdiDisplay p { color: var(--success) !important; }
+        /* Tabela */
+        .table-wrap{ overflow:auto; border-radius:8px; }
+        table{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13px; color:var(--text-dark); }
+        thead th{
+            position:sticky; top:0; z-index:2;
+            background: linear-gradient(180deg,var(--primary-light),var(--primary));
+            color:white; padding:10px 8px; text-align:left; font-weight:700;
+            border-bottom:1px solid rgba(0,0,0,0.06);
+        }
+        tbody td{ padding:8px 8px; border-bottom:1px solid rgba(0,0,0,0.04); text-align:right; }
+        tbody tr:nth-child(even){ background: rgba(0,0,0,0.02); }
+        td:first-child, th:first-child{ text-align:center; width:90px; }
+        /* Descrição/Resumo usa o novo primary (Azul Marinho) */
+        .col-left{ 
+            text-align:left; 
+            max-width:260px; 
+            overflow:hidden; 
+            text-overflow:ellipsis; 
+            white-space:nowrap; 
+            color: var(--primary); 
+            font-weight: 600;
+        }
+        /* Ações compactas */
+        .action-cell{ text-align:center; }
+
+        /* --------------- GANHO/PERDA (BADGE) E NEGRITO GERAL --------------- */
+        /* Estilo de Badge aplicado ao conteúdo da TD */
+        .ganho, .perda { 
+            font-weight: 800; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            display: inline-block; 
+            min-width: 60px; 
+            text-align: center;
+        }
+        .ganho { 
+            color: var(--success) !important;
+            background: rgba(46, 125, 50, 0.1); 
+            border: 1px solid rgba(46, 125, 50, 0.2);
+        }
+        .perda { 
+            color: var(--danger) !important; 
+            background: rgba(198, 40, 40, 0.1); 
+            border: 1px solid rgba(198, 40, 40, 0.2);
+        }
+        /* Estilo para b/strong em geral */
+        b, strong {
+            font-weight: 800; 
+            color: var(--primary); 
+        }
+        /* ------------------------------------------------------------------- */
+
+        /* Responsive */
+        @media (max-width:980px){
+            /* Centraliza em telas pequenas */
+            #siteLogo{ max-width:120px; display:block; margin:0 auto 8px; }
+            #header-container{ margin-bottom:0; width: 100%; justify-content: center; }
+            #left-header-content { justify-content: center; }
+            .input-row{ flex-direction:column; align-items:stretch; }
+        }
+        /* Print */
+        @media print{
+            body{ background:white; padding:0; color:black; }
+            #input-panel .file-label, #input-panel .logo-label, #deleteAllBtn { display:none; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_vxw2VcSPO_tMXgrl7quZ855ODvpqQuR8",
+            authDomain: "controle-cdi.firebaseapp.com",
+            databaseURL: "https://controle-cdi-default-rtdb.firebaseio.com",
+            projectId: "controle-cdi",
+            storageBucket: "controle-cdi.firebasestorage.app",
+            messagingSenderId: "215359645646",
+            appId: "1:215359645646:web:cd61ae2f72e100d522ad9f",
+            measurementId: "G-TV1M1QWQRC"
         };
-        reader.onerror=reject; reader.readAsDataURL(file);
-      });
-    }
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(); 
+        const DOC_REF = db.collection("configuracao_global").doc("dados_cdi");
+        console.log("Firebase e Firestore inicializados!");
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+<body onload="loadState()">
+    <div id="logo-wrapper">
+        <img id="siteLogo" alt="Logo do site">
+    </div>
+    <div id="header-container">
+        <div id="left-header-content">
+            <div id="logo-placeholder">📈</div>
+            <h1>Controle de Ganhos CDI</h1>
+        </div>
+    </div>
+    <div id="top-actions" class="card" role="region" aria-label="Ações principais">
+        <div id="header-left">
+            <div style="font-weight:700;">Resumo Diário</div>
+            <div style="font-size:12px;color:var(--muted);">Filtros, importação e ações rápidas</div>
+        </div>
+        <div id="header-right">
+            <button id="printBtn" class="btn small" title="Imprimir">Imprimir</button>
+            <button id="exportBtn" class="btn small secondary" title="Exportar">Exportar</button>
+            <label class="file-label" for="excelFile" title="Selecionar arquivos">
+                <input type="file" id="excelFile" accept=".xlsx,.xls,.csv,.txt" multiple>
+                <span class="btn small">Procurar</span>
+            </label>
+            <button id="loadExcelBtn" class="btn small secondary" title="Importar arquivos">Importar</button>
+            <label class="logo-label" for="logoFile" title="Carregar logo">
+                <input type="file" id="logoFile" accept="image/*">
+                <span class="btn small">Procurar</span>
+            </label>
+            <button id="addLogoBtn" class="btn small secondary" title="Carregar Logo">Carregar Logo</button>
+            <button id="removeLogoBtn" class="btn small" title="Remover">Remover</button>
+            <button id="deleteAllBtn" class="btn small secondary danger" title="Excluir tudo">🗑️</button>
+        </div>
+    </div>
+    <div id="main-container">
+        <div id="results-panel" class="card">
+            <h2 style="margin:0 0 8px 0;">📊 Resumo Diário</h2>
+            <div class="card filter-card" style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                    <div style="font-weight:600;color:var(--muted);">Filtros</div>
+                    <div style="font-size:12px;color:var(--muted);">Mostrar detalhe por operação</div>
+                </div>
+                <div class="input-row" style="margin-top:8px;">
+                    <div>
+                        <label for="filterStartDate">Data de Início</label>
+                        <input type="date" id="filterStartDate">
+                    </div>
+                    <div>
+                        <label for="filterEndDate">Data de Fim</label>
+                        <input type="date" id="filterEndDate">
+                    </div>
+                    <div style="display:flex;align-items:flex-end;gap:8px;">
+                        <button id="filterBtn" class="btn small">Filtrar</button>
+                        <button id="resetFilterBtn" class="btn small secondary">Limpar</button>
+                    </div>
+                </div>
+                <div style="margin-top:8px;">
+                    <label style="font-weight:600;color:var(--muted)">
+                        <input type="checkbox" id="showIndividualOps" checked onchange="calculateAndRender()"> Mostrar Detalhe por Operação
+                    </label>
+                </div>
+            </div>
+            <div class="totals">
+                <div class="total-card" id="totalCompromissadaDisplay"><h4>Compromissada TOTAL</h4><p>R$ 0,00</p></div>
+                <div class="total-card" id="totalRetornoDisplay"><h4>Retorno Bruto TOTAL</h4><p>R$ 0,00</p></div>
+                <div class="total-card" id="totalCdiDisplay"><h4>Ganho (R$) TOTAL</h4><p>R$ 0,00</p></div>
+            </div>
+            <div class="table-wrap">
+                <div id="resultTable"></div>
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-top:10px;">
+                ⚠️ O <strong>Ganho (R$) Diário</strong> é calculado pelo Valor Retorno Bruto - Valor Compromissada, com inversão para RECOMPRA.
+            </p>
+        </div>
+        <div id="input-panel" class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h3 style="margin:0 0 8px 0;">⭐ Configuração Global</h3>
+            </div>
+            <div class="input-row">
+                <div>
+                    <label for="taxaCdiAnual">Taxa CDI Anual Global (%)</label>
+                    <input type="text" id="taxaCdiAnual" placeholder="14,90" value="14,90" onchange="calculateAndRender()">
+                </div>
+                <div>
+                    <label for="diasAno">Dias no Ano</label>
+                    <input type="text" id="diasAno" placeholder="252" value="252" onchange="calculateAndRender()">
+                </div>
+            </div>
+            <hr style="border:none;border-top:1px solid rgba(15,23,36,0.04);margin:12px 0;">
+            <div>
+                <h3 style="margin:0 0 8px 0;">📂 Importação</h3>
+                <p style="font-size:12px;color:var(--muted);margin:0 0 10px 0;">
+                    *O sistema tenta reconhecer os cabeçalhos, priorizando 'TX. 252' para a taxa CDI.
+                </p>
+            </div>
+            <hr style="border:none;border-top:1px solid rgba(15,23,36,0.04);margin:12px 0;">
+            <div>
+                <h3 style="margin:0 0 8px 0;">➕ Lançamento Manual</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <input type="hidden" id="editIndex" value="-1">
+                    <div><label for="manualData">Data do Lançamento</label><br><input type="date" id="manualData" required></div>
+                    <div><label for="manualDesc">Descrição</label><br><input type="text" id="manualDesc" placeholder="Ex: REVENDA - Aplicação Mês"></div>
+                    <div><label for="manualBanco">Banco / Contraparte</label><br><input type="text" id="manualBanco" placeholder="Ex: BTG Pactual"></div>
+                    <div style="display:flex;gap:8px;">
+                        <div style="flex:1;"><label for="manualCedente">Conta Cedente</label><br><input type="text" id="manualCedente" placeholder="8300005"></div>
+                        <div style="flex:1;"><label for="manualCessionario">Conta Cessionário</label><br><input type="text" id="manualCessionario" placeholder="12000005"></div>
+                    </div>
+                    <div><label for="manualCdiTaxa">Taxa CDI Anual Específica (%)</label><br><input type="text" id="manualCdiTaxa" placeholder="14,90 (Deixar vazio para usar Global)"></div>
+                    <div style="display:flex;gap:8px;">
+                        <div style="flex:1;"><label for="manualCompromissada">Valor Compromissada</label><br><input type="text" id="manualCompromissada" placeholder="10.000,00"></div>
+                        <div style="flex:1;"><label for="manualRetorno">Valor Retorno (Bruto)</label><br><input type="text" id="manualRetorno" placeholder="10.050,25"></div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button id="addBtn" class="btn" style="flex:1;">Adicionar Lançamento</button>
+                        <button id="cancelEditBtn" class="btn secondary" style="flex:1;display:none;">Cancelar Edição</button>
+                    </div>
+                </div>
+            </div>
+            <pre id="log" style="height:84px;overflow:auto;margin-top:12px;color:var(--muted);">Aguardando...</pre>
+        </div>
+    </div>
+    <script>
+        /* ---------- Funções utilitárias e lógica ---------- */
+        function log(message) { document.getElementById('log').textContent = message; }
 
-    if(addLogoBtn){ addLogoBtn.addEventListener('click',()=>logoInput.click()); }
-    if(logoInput){
-      logoInput.addEventListener('change', async (e)=>{
-        const file = e.target.files && e.target.files[0];
-        if(!file) return;
-        try{
-          // Faz upload no Storage e salva URL no DB (logo global)
-          const compressedDataUrl = await compressImageFile(file, 0.8, 800);
-          // Converte DataURL para Blob
-          const res = await fetch(compressedDataUrl);
-          const blob = await res.blob();
-          const ref = storage.ref('logo/logo-global.jpg');
-          await ref.put(blob);
-          const url = await ref.getDownloadURL();
-          await database.ref('cdiLogoUrl').set(url);
-          siteLogo.src = url;
-          siteLogo.style.display = 'block';
-          log('✅ Logo global atualizado no Firebase Storage.');
-        } catch(err){
-          console.error(err);
-          log('❌ Erro ao enviar logo ao Storage. Salvando localmente...');
-          // Fallback local
-          try{
-            const localDataUrl = await compressImageFile(file, 0.8, 800);
-            localStorage.setItem('cdiLogo', localDataUrl);
-            siteLogo.src = localDataUrl;
-            siteLogo.style.display = 'block';
-            log('✅ Logo salvo localmente (fallback).');
-          }catch(e2){ log('❌ Erro ao processar logo local.'); }
-        }
-        resetThemeToFixed();
-      });
-    }
+        // Função para manter o tema fixo no Azul Marinho e Vermelho Secundário com Borda Branca
+        function resetThemeToFixed() {
+            document.documentElement.style.setProperty('--primary', '#0A0A33');
+            document.documentElement.style.setProperty('--primary-light', '#1A1A55');
+            document.documentElement.style.setProperty('--secondary', '#C00000');
+            document.documentElement.style.setProperty('--secondary-light', '#E00000');
 
-    if(removeLogoBtn){
-      removeLogoBtn.addEventListener('click', async ()=>{
-        if(!confirm('Tem certeza que deseja remover o logo global?')) return;
-        try{
-          await database.ref('cdiLogoUrl').remove();
-          siteLogo.src = 'img/logo.png'; // volta ao padrão (se existir)
-          siteLogo.style.display = 'block';
-          log('🗑️ Logo global removido. Restaurado padrão.');
-        }catch(err){
-          log('❌ Erro ao remover logo global: '+err.message);
-        }
-        resetThemeToFixed();
-      });
-    }
-
-    // Renderização
-    function updateTotalCards(){
-      document.querySelector('#totalCompromissadaDisplay p').textContent = formatBRL(totalCompromissada);
-      document.querySelector('#totalRetornoDisplay p').textContent = formatBRL(totalRetorno);
-      document.querySelector('#totalCdiDisplay p').textContent = formatBRL(totalGanho);
-    }
-
-    function calculateAndRender(){
-      totalCompromissada=0; totalRetorno=0; totalGanho=0;
-      const cdiGlobal = cleanCdiTaxa(document.getElementById('taxaCdiAnual').value);
-      const diasAno = parseNumber(document.getElementById('diasAno').value) || 252;
-      const showIndividual = document.getElementById('showIndividualOps').checked;
-
-      const filterStartDateStr = document.getElementById('filterStartDate').value;
-      const filterEndDateStr = document.getElementById('filterEndDate').value;
-      const filterStart = filterStartDateStr ? normalizeDate(filterStartDateStr) : '';
-      const filterEnd = filterEndDateStr ? normalizeDate(filterEndDateStr) : '';
-
-      let ops = operacoes.filter(op=>{
-        const d = normalizeDate(op.data);
-        if(!d) return false;
-        if(filterStart && d < filterStart) return false;
-        if(filterEnd && d > filterEnd) return false;
-        return true;
-      });
-
-      ops.sort((a,b)=> normalizeDate(a.data).localeCompare(normalizeDate(b.data)));
-
-      document.getElementById('taxaCdiAnual').value = formatPercent(cdiGlobal);
-      document.getElementById('diasAno').value = diasAno;
-
-      let html = "<table><thead><tr><th>Data</th><th>Descrição/Resumo</th><th>Banco</th><th>Conta Cedente</th><th>Conta Cessionário</th><th>Compromissada</th><th>Retorno Bruto</th><th>PU IDA</th><th>PU VOLTA</th><th>Taxa CDI Anual (%)</th><th>Ganho (R$) Diário</th><th class='action-cell'>Ações</th></tr></thead><tbody>";
-      const resumo = {};
-
-      ops.forEach((op, index)=>{
-        const d = normalizeDate(op.data);
-        const comp = parseNumber(op.compromissada);
-        const ret = parseNumber(op.retorno);
-        const ganho = (ret - comp) * ((typeof op.descricao === 'string' && op.descricao.toUpperCase().includes('RECOMPRA')) ? -1 : 1);
-        const taxaUsada = (cleanCdiTaxa(op.cdiTaxa) > 0 && cleanCdiTaxa(op.cdiTaxa) !== 100) ? cleanCdiTaxa(op.cdiTaxa) : cdiGlobal;
-
-        totalCompromissada += comp; totalRetorno += ret; totalGanho += ganho;
-
-        if(!resumo[d]) resumo[d] = { data:d, totalCompromissada:0, totalRetorno:0, totalGanho:0, primeiraTaxa: taxaUsada };
-        resumo[d].totalCompromissada += comp; resumo[d].totalRetorno += ret; resumo[d].totalGanho += ganho;
-
-        if(showIndividual){
-          const ganhoClass = ganho>0 ? 'ganho' : (ganho<0 ? 'perda' : '');
-          html += `<tr class="individual-operation-row">
-            <td class="col-data">${formatDataBR(op.data)}</td>
-            <td class="col-left">${(op.descricao||'-')}</td>
-            <td class="col-left">${(op.banco||'-')}</td>
-            <td>${op.contaCedente||'-'}</td>
-            <td>${op.contaCessionario||'-'}</td>
-            <td>${formatBRL(comp)}</td>
-            <td>${formatBRL(ret)}</td>
-            <td>${formatPU(parseNumber(op.puIda))}</td>
-            <td>${formatPU(parseNumber(op.puVolta))}</td>
-            <td style="text-align:center;">${(Number(taxaUsada)||0).toFixed(4).replace('.',',')}</td>
-            <td class="${ganhoClass}">${formatBRL(ganho)}</td>
-            <td class="action-cell">
-              <button class="btn small" onclick="editOperation(${index})">Alterar</button>
-              <button class="btn small secondary" onclick="deleteOperation(${index})">Excluir</button>
-            </td>
-          </tr>`;
-        }
-      });
-
-      const datas = Object.keys(resumo).sort();
-      if(showIndividual && datas.length) html += `<tr><td colspan="12" style="text-align:left;background:rgba(0,0,0,0.02);font-weight:700;">RESUMO DIÁRIO (Consolidação por dia)</td></tr>`;
-      datas.forEach(k=>{
-        const r = resumo[k];
-        const ganhoClass = r.totalGanho>0 ? 'ganho' : (r.totalGanho<0 ? 'perda' : '');
-        const taxaExib = (cleanCdiTaxa(r.primeiraTaxa) > 0 ? r.primeiraTaxa : cleanCdiTaxa(document.getElementById('taxaCdiAnual').value));
-        html += `<tr class="daily-summary-row">
-          <td class="col-data">${formatDataBR(r.data)}</td>
-          <td class="col-left">Soma Diária</td>
-          <td class="col-left">-</td><td>-</td><td>-</td>
-          <td>${formatBRL(r.totalCompromissada)}</td>
-          <td>${formatBRL(r.totalRetorno)}</td>
-          <td>-</td><td>-</td><td style="text-align:center;">${(Number(taxaExib)||0).toFixed(4).replace('.',',')}</td>
-          <td class="${ganhoClass}">${formatBRL(r.totalGanho)}</td>
-          <td class="action-cell">-</td>
-        </tr>`;
-      });
-
-      html += "</tbody></table>";
-      document.getElementById('resultTable').innerHTML = html;
-      updateTotalCards();
-    }
-
-    // CRUD Operações (multiusuário)
-    function addOperation(){
-      const op = {
-        data: document.getElementById('manualData').value,
-        descricao: document.getElementById('manualDesc').value,
-        banco: document.getElementById('manualBanco').value,
-        contaCedente: document.getElementById('manualCedente').value,
-        contaCessionario: document.getElementById('manualCessionario').value,
-        cdiTaxa: document.getElementById('manualCdiTaxa').value,
-        compromissada: document.getElementById('manualCompromissada').value,
-        retorno: document.getElementById('manualRetorno').value,
-        puIda: '', puVolta: ''
-      };
-
-      if(!op.data || !op.descricao || !op.compromissada || !op.retorno){
-        log('❌ Preencha pelo menos Data, Descrição, Compromissada e Retorno.');
-        return;
-      }
-
-      const editIndex = parseInt(document.getElementById('editIndex').value);
-      if(editIndex !== -1 && editIndex < operacoes.length){
-        const key = operacoes[editIndex].firebaseKey;
-        database.ref('cdiOperations/'+key).set(op)
-          .then(()=>{ log('✏️ Lançamento alterado e salvo.'); resetManualForm(); })
-          .catch(err=>log('❌ Erro ao salvar alteração: '+err.message));
-      } else {
-        database.ref('cdiOperations').push(op)
-          .then(()=>{ log('➕ Novo lançamento adicionado e salvo.'); resetManualForm(); })
-          .catch(err=>log('❌ Erro ao adicionar: '+err.message));
-      }
-    }
-
-    function deleteOperation(index){
-      if(!confirm('Tem certeza que deseja excluir esta operação?')) return;
-      const key = operacoes[index].firebaseKey;
-      database.ref('cdiOperations/'+key).remove()
-        .then(()=>log('🗑️ Operação excluída.'))
-        .catch(err=>log('❌ Erro ao excluir: '+err.message));
-    }
-
-    document.getElementById('deleteAllBtn').addEventListener('click', ()=>{
-      if(!confirm('ATENÇÃO: Deseja EXCLUIR TODOS os lançamentos? Esta ação é irreversível.')) return;
-      database.ref('cdiOperations').remove()
-        .then(()=>log('🗑️ Todos os lançamentos excluídos.'))
-        .catch(err=>log('❌ Erro ao excluir todos: '+err.message));
-    });
-
-    function editOperation(index){
-      const op = operacoes[index];
-      document.getElementById('manualData').value = op.data ? normalizeDate(op.data) : '';
-      document.getElementById('manualDesc').value = op.descricao || '';
-      document.getElementById('manualBanco').value = op.banco || '';
-      document.getElementById('manualCedente').value = op.contaCedente || '';
-      document.getElementById('manualCessionario').value = op.contaCessionario || '';
-      document.getElementById('manualCdiTaxa').value = op.cdiTaxa || '';
-      document.getElementById('manualCompromissada').value = op.compromissada || '';
-      document.getElementById('manualRetorno').value = op.retorno || '';
-
-      document.getElementById('editIndex').value = index;
-      document.getElementById('addBtn').textContent = 'Salvar Alteração';
-      document.getElementById('cancelEditBtn').style.display = 'block';
-      log(`✏️ Editando operação #${index+1}`);
-      document.getElementById('input-panel').scrollIntoView({behavior:'smooth'});
-    }
-
-    function resetManualForm(){
-      document.getElementById('manualData').value = '';
-      document.getElementById('manualDesc').value = '';
-      document.getElementById('manualBanco').value = '';
-      document.getElementById('manualCedente').value = '';
-      document.getElementById('manualCessionario').value = '';
-      document.getElementById('manualCdiTaxa').value = '';
-      document.getElementById('manualCompromissada').value = '';
-      document.getElementById('manualRetorno').value = '';
-      document.getElementById('editIndex').value = -1;
-      document.getElementById('addBtn').textContent = 'Adicionar Lançamento';
-      document.getElementById('cancelEditBtn').style.display = 'none';
-    }
-
-    function attachListeners(){
-      document.getElementById('addBtn').addEventListener('click', addOperation);
-      document.getElementById('cancelEditBtn').addEventListener('click', resetManualForm);
-      document.getElementById('filterBtn').addEventListener('click', calculateAndRender);
-      document.getElementById('resetFilterBtn').addEventListener('click', ()=>{
-        document.getElementById('filterStartDate').value = '';
-        document.getElementById('filterEndDate').value = '';
-        calculateAndRender();
-      });
-      document.getElementById('printBtn').addEventListener('click', window.print);
-
-      // Exportação Excel
-      document.getElementById('exportBtn').addEventListener('click', ()=>{
-        const tabela = document.querySelector('#resultTable table');
-        if(!tabela){ log('❌ Nenhuma tabela para exportar.'); return; }
-        const wb = XLSX.utils.table_to_book(tabela, {sheet:"Resumo CDI"});
-        XLSX.writeFile(wb, "ControleGanhosCDI.xlsx");
-        log('⬇️ Tabela exportada para ControleGanhosCDI.xlsx');
-      });
-
-      // Importação de arquivos
-      document.getElementById('loadExcelBtn').addEventListener('click', async ()=>{
-        const fileInput = document.getElementById('excelFile');
-        if(fileInput.files.length===0){ log('❌ Selecione um ou mais arquivos.'); return; }
-        log(`⏳ Processando ${fileInput.files.length} arquivo(s)...`);
-        let newOperations = [];
-
-        for(const file of Array.from(fileInput.files)){
-          if(file.name.endsWith('.csv') || file.name.endsWith('.txt')){
-            const data = await new Promise(resolve=>{
-              Papa.parse(file, {header:true, complete:(r)=>resolve(r.data)});
+            document.querySelectorAll('.btn:not(.secondary):not(.danger)').forEach(b => {
+                b.style.background = 'var(--primary)';
+                b.style.border = '1px solid white';
+                b.style.color = 'white';
             });
-            newOperations.push(...data);
-          } else if(file.name.endsWith('.xlsx') || file.name.endsWith('.xls')){
-            const data = await new Promise((resolve, reject)=>{
-              const reader = new FileReader();
-              reader.onload = (e)=>{
-                const bytes = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(bytes, {type:'array', dateNF:"yyyy-mm-dd"});
-                const sheet = workbook.SheetNames[0];
-                const ws = workbook.Sheets[sheet];
-                const json = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, dateNF:"yyyy-mm-dd"});
-                if(json.length<2){ reject('Planilha vazia.'); return; }
-                const headers = json[0];
-                const mapped = json.slice(1).map(row=>{
-                  const obj={};
-                  headers.forEach((h,i)=>{
-                    let key='';
-                    if(/data/i.test(h)) key='data';
-                    else if(/descrição|resumo/i.test(h)) key='descricao';
-                    else if(/banco|contraparte/i.test(h)) key='banco';
-                    else if(/cedente/i.test(h)) key='contaCedente';
-                    else if(/cessionário/i.test(h)) key='contaCessionario';
-                    else if(/compromissada/i.test(h)) key='compromissada';
-                    else if(/retorno/i.test(h)) key='retorno';
-                    else if(/tx\.? 252|taxa cdi/i.test(h)) key='cdiTaxa';
-                    else if(/pu ida/i.test(h)) key='puIda';
-                    else if(/pu volta/i.test(h)) key='puVolta';
-                    else key = String(h).replace(/[^a-zA-Z0-9]/g,'');
-                    if(key) obj[key] = row[i];
-                  });
-                  return obj;
-                }).filter(obj => obj.data || obj.compromissada);
-                resolve(mapped);
-              };
-              reader.onerror = reject;
-              reader.readAsArrayBuffer(file);
+
+            document.querySelectorAll('.btn.secondary').forEach(b => {
+                b.style.background = 'var(--secondary)';
+                b.style.border = '1px solid white';
+                b.style.color = 'white';
             });
-            newOperations.push(...data);
-          }
+
+            document.querySelectorAll('.btn.danger').forEach(b=>{
+                b.style.background = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim(); 
+                b.style.color = '#ffffff';
+                b.style.border = '1px solid white';
+            });
         }
 
-        if(newOperations.length>0){
-          // Salva cada operação via push (multiusuário sem sobrescrever)
-          const ref = database.ref('cdiOperations');
-          const tasks = newOperations.map(op => ref.push(op));
-          Promise.all(tasks)
-            .then(()=>{ log(`🎉 ${newOperations.length} novas operações importadas e salvas.`); })
-            .catch(err=>log('❌ Erro ao salvar importação: '+err.message));
-        } else {
-          log('⚠️ Nenhum dado válido encontrado para importar.');
+        /* Compressão e extração de cor média (Mantida apenas para carregar o logo) */
+        const logoInput = document.getElementById('logoFile');
+        const siteLogo = document.getElementById('siteLogo');
+        async function compressImageFile(file, quality = 0.7, maxSize = 600) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ratio = Math.min(1, maxSize / Math.max(img.width, img.height));
+                        canvas.width = Math.round(img.width * ratio);
+                        canvas.height = Math.round(img.height * ratio);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        try {
+                            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                            resolve(dataUrl);
+                        } catch (err) { reject(err); }
+                    };
+                    img.onerror = reject;
+                    img.src = reader.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
         }
 
-        calculateAndRender();
-      });
-    }
+        if (logoInput) {
+            logoInput.addEventListener('change', async (e) => {
+                const file = e.target.files && e.target.files[0];
+                if(!file) return;
 
-    // Boot
-    window.onload = ()=>{
-      resetThemeToFixed();
-      attachListeners();
-      loadConfig();
-      subscribeOperations();
-      loadGlobalLogo();
+                try {
+                    const compressed = await compressImageFile(file, 0.7, 600);
+                    siteLogo.src = compressed;
+                    siteLogo.style.display = 'block';
+                    localStorage.setItem('cdiLogo', compressed); 
+                    log('✅ Logo salvo localmente.');
+                } catch (err) {
+                    console.error(err);
+                    log('❌ Erro ao processar o logo.');
+                }
+                resetThemeToFixed();
+            });
 
-      // Salva config ao mudar
-      document.getElementById('taxaCdiAnual').addEventListener('change', saveConfig);
-      document.getElementById('diasAno').addEventListener('change', saveConfig);
+            const addLogoBtn = document.getElementById('addLogoBtn'); 
+            if (addLogoBtn) { 
+                addLogoBtn.addEventListener('click', () => { 
+                    logoInput.click(); 
+                }); 
+            }
+        }
+        const removeLogoBtn = document.getElementById('removeLogoBtn');
+        if (removeLogoBtn) {
+            removeLogoBtn.addEventListener('click', ()=>{
+                if(!confirm('Tem certeza que deseja remover logo salvo e restaurar padrão?')) return;
+                localStorage.removeItem('cdiLogo');
+                siteLogo.src = '';
+                siteLogo.style.display = 'none';
+                resetThemeToFixed();
+                log('🗑️ Logo removido. Tema restaurado.');
+            });
+        }
 
-      // Fallback: se houver logo local salvo (ex.: usuário preferir próprio logo)
-      const localLogo = localStorage.getItem('cdiLogo');
-      if(localLogo){ siteLogo.src = localLogo; siteLogo.style.display = 'block'; }
-    };
-  </script>
+        // --- Funções de processamento de dados ---
+        function cleanCurrency(v){ 
+            if(typeof v!=='string') v=String(v); 
+            let cleanString = v.replace(/[R$\s]/g, '');
+            cleanString = cleanString.replace(/\./g, '');
+            cleanString = cleanString.replace(/,/g, '.');
+            const n=parseFloat(cleanString); 
+            return isNaN(n)?0:n; 
+        }
+        function parseNumber(v){ 
+            if(v===undefined||v===null||v==='') return 0; 
+            if(typeof v==='string' && (v.includes(',') || v.includes('R$'))) return cleanCurrency(v); 
+            const n=parseFloat(v); 
+            return isNaN(n)?0:n; 
+        }
+        function cleanCdiTaxa(v){ 
+            if(v===undefined||v===null||v==='') return 0; 
+            if(typeof v!=='string') v=String(v); 
+            v=v.replace(/[^0-9,.]/g,''); 
+            let c=v.replace(',','.'); 
+            const parts=c.split('.'); 
+            if(parts.length>2) c=parts.slice(0,-1).join('')+'.'+parts.slice(-1); 
+            const n=parseFloat(c); 
+            return isNaN(n)?0:n; 
+        }
+        function formatBRL(n){ return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2}); }
+        function formatPercent(n){ if(n===undefined||n===null||isNaN(n)) return ''; return n.toFixed(4).replace('.',','); }
+        function formatPU(n){ if(n===undefined||n===null||isNaN(n)||n===0) return '-'; return n.toLocaleString('pt-BR',{minimumFractionDigits:4,maximumFractionDigits:4}); }
+        function formatDataBR(s){ 
+            if(!s) return '-'; 
+            if(s.match(/^\d{4}-\d{2}-\d{2}$/)){ 
+                const [y,m,d]=s.split('-'); 
+                return `${d}/${m}/${y}`; 
+            } 
+            if(s.match(/^\d{2}\/\d{2}\/\d{4}$/)) return s; 
+            const d=new Date(s); 
+            if(!isNaN(d)) return d.toLocaleDateString('pt-BR'); 
+            return s; 
+        }
+        function normalizeDate(s){ 
+            if(!s) return ''; 
+            s=String(s).trim(); 
+            if(s.match(/^\d{4}-\d{2}-\d{2}$/)) return s; 
+            if(s.match(/^\d{2}\/\d{2}\/\d{4}$/)){ 
+                const [d,m,y]=s.split('/'); 
+                return `${y}-${m}-${d}`; 
+            } 
+            const num=parseFloat(s); 
+            if(!isNaN(num) && num>25569 && num<70000){ // Excel serial date
+                const base=new Date('1899-12-30'); 
+                const date=new Date(base.getTime() + num*24*60*60*1000); 
+                if(!isNaN(date)){ 
+                    const y=date.getUTCFullYear(); 
+                    const m=date.getUTCMonth()+1; 
+                    const d=date.getUTCDate(); 
+                    const pad=n=>n<10?'0'+n:n; 
+                    return `${y}-${pad(m)}-${pad(d)}`; 
+                } 
+            } 
+            try{ const d=new Date(s); if(!isNaN(d)) return d.toISOString().split('T')[0]; }catch(e){} 
+            return ''; 
+        }
+
+        /* Persistência e estado (FIREBASE FIRESTORE) */
+        let operacoes = [], totalCompromissada=0, totalRetorno=0, totalGanho=0;
+
+        function saveState(){ 
+            try{ 
+                if (typeof db === 'undefined') {
+                    log('❌ Erro: Firebase Firestore (db) não inicializado. Verifique as chaves.');
+                    return;
+                }
+                
+                const state={
+                    operacoes: operacoes, 
+                    taxaCdiAnual: document.getElementById('taxaCdiAnual').value, 
+                    diasAno: document.getElementById('diasAno').value
+                };
+                
+                DOC_REF.set(state)
+                    .then(() => console.log('✅ Dados salvos na nuvem (Firestore)!'))
+                    .catch(e => {
+                        log('❌ Erro ao salvar no Firestore: ' + e.message);
+                        console.error("Erro ao salvar:", e);
+                    });
+
+            }catch(e){ 
+                console.warn(e); 
+                log('❌ Erro inesperado ao tentar salvar no Firestore.');
+            }
+        }
+
+        window.loadState = ()=>{
+            resetThemeToFixed();
+            
+            try {
+                const savedLogo = localStorage.getItem('cdiLogo');
+                if (savedLogo) {
+                    siteLogo.src = savedLogo;
+                    siteLogo.style.display = 'block';
+                    log('💾 Logo carregado do salvamento local.');
+                }
+            } catch (err) { console.warn(err); }
+
+            DOC_REF.get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const st = doc.data();
+                        operacoes = st.operacoes || [];
+                        document.getElementById('taxaCdiAnual').value = st.taxaCdiAnual || '14,90';
+                        document.getElementById('diasAno').value = st.diasAno || '252';
+                        log(`💾 ${operacoes.length} operações carregadas do Firestore.`);
+                    } else {
+                        log('Aguardando... Não há dados salvos no Firestore.');
+                    }
+                })
+                .catch(e => {
+                    log('❌ Erro ao carregar dados do Firestore: ' + e.message);
+                    console.error("Erro ao carregar:", e);
+                })
+                .finally(() => {
+                    attachFilterListeners();
+                    calculateAndRender();
+                });
+        };
+
+        /* --- Funções de Renderização e Cálculo --- */
+        function updateTotalCards(){ 
+            document.querySelector('#totalCompromissadaDisplay p').textContent = formatBRL(totalCompromissada); 
+            document.querySelector('#totalRetornoDisplay p').textContent = formatBRL(totalRetorno); 
+            document.querySelector('#totalCdiDisplay p').textContent = formatBRL(totalGanho); 
+        }
+        
+        function calculateAndRender(){
+            totalCompromissada=0; totalRetorno=0; totalGanho=0;
+            const cdiGlobal = cleanCdiTaxa(document.getElementById('taxaCdiAnual').value);
+            const diasAno = parseNumber(document.getElementById('diasAno').value) || 252;
+            const showIndividual = document.getElementById('showIndividualOps').checked;
+
+            const filterStartDateStr = document.getElementById('filterStartDate').value;
+            const filterEndDateStr = document.getElementById('filterEndDate').value;
+            const filterStart = filterStartDateStr ? normalizeDate(filterStartDateStr) : '';
+            const filterEnd = filterEndDateStr ? normalizeDate(filterEndDateStr) : '';
+
+            let ops = operacoes.filter(op=>{
+                const d = normalizeDate(op.data);
+                if(!d) return false;
+                if(filterStart && d < filterStart) return false;
+                if(filterEnd && d > filterEnd) return false;
+                return true;
+            });
+            ops.sort((a,b)=> normalizeDate(a.data).localeCompare(normalizeDate(b.data)));
+            
+            document.getElementById('taxaCdiAnual').value = formatPercent(cdiGlobal);
+            document.getElementById('diasAno').value = diasAno;
+            
+            let html = "<table><thead><tr><th>Data</th><th>Descrição/Resumo</th><th>Banco</th><th>Conta Cedente</th><th>Conta Cessionário</th><th>Compromissada</th><th>Retorno Bruto</th><th>PU IDA</th><th>PU VOLTA</th><th>Taxa CDI Anual (%)</th><th>Ganho (R$) Diário</th><th class='action-cell'>Ações</th></tr></thead><tbody>";
+            const resumo = {};
+            
+            ops.forEach((op, index)=>{
+                const d = normalizeDate(op.data);
+                const comp = parseNumber(op.compromissada); 
+                const ret = parseNumber(op.retorno);
+                const ganho = (ret - comp) * ( (typeof op.descricao === 'string' && op.descricao.toUpperCase().includes('RECOMPRA')) ? -1 : 1 );
+                const taxaUsada = (cleanCdiTaxa(op.cdiTaxa) > 0 && cleanCdiTaxa(op.cdiTaxa) !== 100) ? cleanCdiTaxa(op.cdiTaxa) : cdiGlobal;
+                
+                totalCompromissada += comp; 
+                totalRetorno += ret; 
+                totalGanho += ganho;
+                
+                if(!resumo[d]) resumo[d] = { data:d, totalCompromissada:0, totalRetorno:0, totalGanho:0, primeiraTaxa: taxaUsada };
+                resumo[d].totalCompromissada += comp; 
+                resumo[d].totalRetorno += ret; 
+                resumo[d].totalGanho += ganho;
+                
+                if(showIndividual){
+                    const ganhoClass = ganho>0 ? 'ganho' : (ganho<0 ? 'perda' : ''); 
+                    html += `<tr class="individual-operation-row">
+                        <td class="col-data">${formatDataBR(op.data)}</td>
+                        <td class="col-left">${(op.descricao||'-')}</td>
+                        <td class="col-left">${(op.banco||'-')}</td>
+                        <td>${op.contaCedente||'-'}</td>
+                        <td>${op.contaCessionario||'-'}</td>
+                        <td>${formatBRL(comp)}</td>
+                        <td>${formatBRL(ret)}</td>
+                        <td>${formatPU(parseNumber(op.puIda))}</td>
+                        <td>${formatPU(parseNumber(op.puVolta))}</td>
+                        <td style="text-align:center;">${(Number(taxaUsada)||0).toFixed(4).replace('.',',')}</td>
+                        <td class="${ganhoClass}">${formatBRL(ganho)}</td>
+                        <td class="action-cell">
+                            <button class="btn small" onclick="editOperation(${operacoes.indexOf(op)})">Alterar</button>
+                            <button class="btn small secondary" onclick="deleteOperation(${operacoes.indexOf(op)})">Excluir</button>
+                        </td>
+                    </tr>`;
+                }
+            });
+            
+            const datas = Object.keys(resumo).sort();
+            if(showIndividual && datas.length) html += `<tr><td colspan="12" style="text-align:left;background:rgba(0,0,0,0.02);font-weight:700;">RESUMO DIÁRIO (Consolidação por dia)</td></tr>`;
+            
+            datas.forEach(k=>{
+                const r = resumo[k];
+                const ganhoClass = r.totalGanho>0 ? 'ganho' : (r.totalGanho<0 ? 'perda' : ''); 
+                const taxaExib = (cleanCdiTaxa(r.primeiraTaxa) > 0 ? r.primeiraTaxa : cleanCdiTaxa(document.getElementById('taxaCdiAnual').value));
+                
+                html += `<tr class="daily-summary-row">
+                    <td class="col-data">${formatDataBR(r.data)}</td>
+                    <td class="col-left">Soma Diária</td>
+                    <td class="col-left">-</td><td>-</td><td>-</td>
+                    <td>${formatBRL(r.totalCompromissada)}</td>
+                    <td>${formatBRL(r.totalRetorno)}</td>
+                    <td>-</td><td>-</td><td style="text-align:center;">${(Number(taxaExib)||0).toFixed(4).replace('.',',')}</td>
+                    <td class="${ganhoClass}">${formatBRL(r.totalGanho)}</td>
+                    <td class="action-cell">-</td> 
+                </tr>`; 
+            });
+            
+            html += `</tbody></table>`;
+            document.getElementById('resultTable').innerHTML = html;
+            updateTotalCards();
+            saveState(); 
+        }
+
+        /* --- Funções de Lançamento Manual --- */
+        
+        function handleManualAdd() {
+            const indexToEdit = parseInt(document.getElementById('editIndex').value);
+            const newOp = {
+                data: document.getElementById('manualData').value,
+                descricao: document.getElementById('manualDesc').value,
+                banco: document.getElementById('manualBanco').value,
+                contaCedente: document.getElementById('manualCedente').value,
+                contaCessionario: document.getElementById('manualCessionario').value,
+                cdiTaxa: document.getElementById('manualCdiTaxa').value,
+                compromissada: document.getElementById('manualCompromissada').value,
+                retorno: document.getElementById('manualRetorno').value,
+                puIda: '',
+                puVolta: ''
+            };
+            
+            if (!newOp.data || (!newOp.compromissada && !newOp.retorno)) {
+                log('⚠️ Data e pelo menos um valor (Compromissada ou Retorno) são obrigatórios.');
+                return;
+            }
+
+            if (indexToEdit >= 0) {
+                operacoes[indexToEdit] = newOp;
+                log('✅ Operação alterada com sucesso.');
+                document.getElementById('addBtn').textContent = 'Adicionar Lançamento';
+                document.getElementById('cancelEditBtn').style.display = 'none';
+            } else {
+                operacoes.push(newOp);
+                log('✅ Novo lançamento adicionado.');
+            }
+
+            document.querySelectorAll('#input-panel input[type="text"], #input-panel input[type="date"]').forEach(input => input.value = '');
+            document.getElementById('editIndex').value = '-1';
+
+            calculateAndRender(); 
+        }
+
+        function editOperation(index) {
+            if (index < 0 || index >= operacoes.length) return;
+            const op = operacoes[index];
+
+            document.getElementById('manualData').value = normalizeDate(op.data);
+            document.getElementById('manualDesc').value = op.descricao || '';
+            document.getElementById('manualBanco').value = op.banco || '';
+            document.getElementById('manualCedente').value = op.contaCedente || '';
+            document.getElementById('manualCessionario').value = op.contaCessionario || '';
+            document.getElementById('manualCdiTaxa').value = op.cdiTaxa || '';
+            document.getElementById('manualCompromissada').value = op.compromissada || '';
+            document.getElementById('manualRetorno').value = op.retorno || '';
+            document.getElementById('editIndex').value = index;
+
+            document.getElementById('addBtn').textContent = 'Salvar Alteração';
+            document.getElementById('cancelEditBtn').style.display = 'inline-flex';
+            log(`✏️ Editando operação de ${op.data}.`);
+        }
+
+        function deleteOperation(index) {
+            if (index < 0 || index >= operacoes.length) return;
+            if (confirm(`Tem certeza que deseja excluir a operação de ${formatDataBR(operacoes[index].data)}?`)) {
+                operacoes.splice(index, 1);
+                log('🗑️ Operação excluída.');
+                calculateAndRender(); 
+            }
+        }
+
+        /* --- Funções de Importação (CORRIGIDAS E COMPLETAS) --- */
+        function mapHeaders(header) {
+            const normalized = String(header).trim().toUpperCase();
+            if (normalized.includes('DATA')) return 'data';
+            if (normalized.includes('DESCRICAO') || normalized.includes('RESUMO')) return 'descricao';
+            if (normalized.includes('CEDENTE')) return 'contaCedente';
+            if (normalized.includes('CESSIONARIO')) return 'contaCessionario';
+            if (normalized.includes('COMPROMISSADA') || normalized.includes('VL.COMP')) return 'compromissada';
+            if (normalized.includes('RETORNO') || normalized.includes('VL.RETORNO')) return 'retorno';
+            if (normalized.includes('TX. 252') || normalized.includes('TAXA')) return 'cdiTaxa';
+            if (normalized.includes('PU IDA')) return 'puIda';
+            if (normalized.includes('PU VOLTA')) return 'puVolta';
+            if (normalized.includes('BANCO')) return 'banco';
+            return null;
+        }
+
+        function parseCSV(file) {
+            Papa.parse(file, {
+                header: true,
+                dynamicTyping: false,
+                skipEmptyLines: true,
+                encoding: "ISO-8859-1",
+                transformHeader: mapHeaders,
+                complete: function(results) {
+                    const newOps = results.data.map(row => {
+                        const op = {};
+                        for (const key in row) {
+                            if (key !== null && row[key] !== undefined && row[key] !== '') {
+                                op[key] = row[key];
+                            }
+                        }
+                        return op;
+                    }).filter(op => op.data && (op.compromissada || op.retorno)); 
+
+                    operacoes.push(...newOps);
+                    log(`✅ Importação CSV (${file.name}): ${newOps.length} operações adicionadas.`);
+                    calculateAndRender(); 
+                },
+                error: function(error) {
+                    log(`❌ Erro ao processar CSV (${file.name}): ${error.message}`);
+                }
+            });
+        }
+
+        function parseExcel(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array', cellDates: true});
+                    const firstSheet = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheet];
+                    
+                    const json = XLSX.utils.sheet_to_json(worksheet, {
+                        header: 1, 
+                        raw: false 
+                    });
+                    
+                    if (json.length < 2) {
+                        log(`⚠️ Planilha ${file.name} vazia ou sem dados.`);
+                        return;
+                    }
+
+                    const headers = json[0].map(mapHeaders);
+                    const newOps = [];
+
+                    for (let i = 1; i < json.length; i++) {
+                        const row = json[i];
+                        const op = {};
+                        let isValid = false;
+                        
+                        for (let j = 0; j < headers.length; j++) {
+                            const mappedKey = headers[j];
+                            const value = row[j];
+                            if (mappedKey && value !== undefined && value !== '') {
+                                op[mappedKey] = value;
+                                if (mappedKey === 'data' || mappedKey === 'compromissada' || mappedKey === 'retorno') {
+                                    isValid = true;
+                                }
+                            }
+                        }
+                        
+                        if (isValid) {
+                            newOps.push(op);
+                        }
+                    }
+
+                    operacoes.push(...newOps);
+                    log(`✅ Importação Excel (${file.name}): ${newOps.length} operações adicionadas.`);
+                    calculateAndRender(); 
+
+                } catch (e) {
+                    log(`❌ Erro ao processar Excel (${file.name}): ${e.message}`);
+                    console.error(e);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        function processFiles() {
+            const files = document.getElementById('excelFile').files;
+            if (files.length === 0) {
+                log('⚠️ Selecione pelo menos um arquivo para importar.');
+                return;
+            }
+            log(`Iniciando importação de ${files.length} arquivo(s)...`);
+            
+            Array.from(files).forEach(file => {
+                const extension = file.name.split('.').pop().toLowerCase();
+                
+                if (extension === 'csv' || extension === 'txt') {
+                    parseCSV(file);
+                } else if (extension === 'xlsx' || extension === 'xls') {
+                    parseExcel(file);
+                } else {
+                    log(`❌ Arquivo ${file.name}: Extensão não suportada.`);
+                }
+            });
+        }
+
+        /* --- EVENT LISTENERS FINAIS --- */
+
+        document.getElementById('addBtn').addEventListener('click', handleManualAdd);
+        document.getElementById('loadExcelBtn').addEventListener('click', processFiles);
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            document.querySelectorAll('#input-panel input[type="text"], #input-panel input[type="date"]').forEach(input => input.value = '');
+            document.getElementById('editIndex').value = '-1';
+            document.getElementById('addBtn').textContent = 'Adicionar Lançamento';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        });
+
+        function attachFilterListeners(){
+            document.getElementById('filterBtn').addEventListener('click', calculateAndRender);
+            document.getElementById('resetFilterBtn').addEventListener('click', ()=>{
+                document.getElementById('filterStartDate').value = '';
+                document.getElementById('filterEndDate').value = '';
+                calculateAndRender();
+            });
+        }
+        document.getElementById('deleteAllBtn').addEventListener('click', ()=>{
+            if (confirm('ATENÇÃO: Você tem certeza que deseja EXCLUIR TODOS os lançamentos salvos? Esta ação é irreversível.')) {
+                operacoes = [];
+                log('🗑️ Todos os dados foram excluídos. Salvando no Firebase...');
+                calculateAndRender(); 
+            }
+        });
+
+        document.getElementById('printBtn').addEventListener('click', () => {
+            window.print();
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const wb = XLSX.utils.book_new();
+            const simplifiedOps = operacoes.map(op => ({
+                Data: formatDataBR(op.data),
+                Descrição: op.descricao,
+                Banco: op.banco,
+                'Conta Cedente': op.contaCedente,
+                'Conta Cessionário': op.contaCessionario,
+                Compromissada: cleanCurrency(op.compromissada),
+                'Retorno Bruto': cleanCurrency(op.retorno),
+                'PU IDA': op.puIda,
+                'PU VOLTA': op.puVolta',
+                'Taxa CDI Anual (%)': cleanCdiTaxa(op.cdiTaxa)
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(simplifiedOps);
+            XLSX.utils.book_append_sheet(wb, ws, "Lancamentos CDI");
+            XLSX.writeFile(wb, "controle_cdi_export.xlsx");
+            log('💾 Dados exportados para Excel.');
+        });
+
+    </script>
 </body>
 </html>
